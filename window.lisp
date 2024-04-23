@@ -6,7 +6,7 @@
 (defvar *shader-program* NIL)
 (defvar *vao*            NIL)    
 (defvar *vbo*            NIL)
-(defvar *vert->gl* NIL)
+(defvar *vert->gl*       NIL)
 
 (defvar *vert* #(-0.5 -0.5 0.0
                  0.5 -0.5 0.0
