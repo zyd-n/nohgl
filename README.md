@@ -1,7 +1,6 @@
-
-Note: This currently **requires** Sly and will not work with SLIME.
-
 # Install
+
+- Requires SLIME.
 
 Clone the repository to some ASDF-aware directory like `~/common-lisp`
 
