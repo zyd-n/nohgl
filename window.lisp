@@ -4,7 +4,7 @@
 (defvar *die*            NIL)
 (defvar *commands*       NIL)
 (defvar *shader-program* NIL)
-(defvar *vao*            NIL)    
+(defvar *vao*            NIL)
 (defvar *vbo*            NIL)
 (defvar *vert->gl*       NIL)
 
@@ -61,7 +61,7 @@ void main()
     (gl:attach-shader *shader-program* vertex-shader)
     (gl:attach-shader *shader-program* fragment-shader)
     (gl:link-program  *shader-program*)
-    
+
     (gl:delete-shader vertex-shader)
     (gl:delete-shader fragment-shader)
 
@@ -92,7 +92,7 @@ void main()
 (defun kill-buffer ()
   (gl:use-program 0)
   (gl:bind-vertex-array 0)
-  
+
   (gl:delete-vertex-arrays (list *vao*))
   (gl:delete-buffers (list *vbo*))
   (gl:delete-program *shader-program*)
@@ -132,7 +132,7 @@ void main()
     (kill-window)))
 
 (set-draw-commands
-  (gl:clear-color 0.3 0.4 0.6 1.0)
+  (gl:clear-color 0.3 0.4 0.7 1.0)
   (gl:clear :color-buffer))
 
 ;; (defmethod glfw:char-entered ((window main-window) code-point))
