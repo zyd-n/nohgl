@@ -6,13 +6,12 @@
 (defvar *shader-program* NIL)
 (defvar *vao*            NIL)
 (defvar *vbo*            NIL)
-(defvar *vert->gl*       NIL)
 
-(defvar *vert* #(-0.5 -0.5 0.0
-                 0.5 -0.5 0.0
-                 0.0 0.5 0.0))
+(defvar *verts* #(-0.5 -0.5 0.0
+                  0.5 -0.5 0.0
+                  0.0 0.5 0.0))
 
-(defparameter *vertex-shader-source*
+(defparameter *vertex-shader*
   "#version 330 core
 layout (location = 0) in vec3 pos;
 void main()
@@ -20,7 +19,7 @@ void main()
   gl_Position = vec4(pos.x, pos.y, pos.z, 1.0);
 }")
 
-(defparameter *fragment-shader-source*
+(defparameter *fragment-shader*
   "#version 330 core
 out vec4 FragColor;
 void main()
@@ -112,7 +111,7 @@ void main()
     (glfw:init)
     (glfw:make-current (setf *window* (apply #'make-instance 'main-window keys)))
     (gl:viewport 0 0 800 600)
-    (compile-shader)
+    (compile-shader *vertex-shader* *fragment-shader*)
     (init-buffer)
     (format T "Launching window~%")
     (unwind-protect
