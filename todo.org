@@ -1,4 +1,4 @@
 * TODO Create a version of the main loop to support both Sly and Slime
 - Currently, the Slime version doesn't send a newline, giving the impression
-  that the REPL is unusable though it is. The Sly version of the loop is better
-  in this regard.
+  that the REPL is unusable. The Sly version of the loop is better in this
+  regard.
