@@ -8,6 +8,10 @@
   :depends-on (:alexandria
                :serapeum
                :glfw
-               :cl-opengl)
+               :cl-opengl
+               :cl-autowrap)
   :components ((:file "package")
-               (:file "window")))
+               (:file "glew")
+               (:file "common")
+               (:file "basic-window")
+               (:file "dot")))
