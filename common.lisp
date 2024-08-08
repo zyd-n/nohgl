@@ -1,148 +1,215 @@
 (in-package #:learngl)
 
-;; (defvar *window*         NIL)
-;; (defvar *die*            NIL)
-;; (defvar *commands*       NIL)
-;; (defvar *shader-program* NIL)
-;; (defvar *vao*            NIL)
-;; (defvar *vbo*            NIL)
+;;; Globals
 
-;; (defvar *verts* #(-0.5 -0.5 0.0
-;;                   0.5 -0.5 0.0
-;;                   0.0 0.5 0.0))
+(defvar *g* nil)
+(defvar *g-should-die* nil)
+(defvar *vbo-handle* nil)
+(defvar *vs-source* "shaders/hello.vert")
+(defvar *fs-source* "shaders/hello.frag")
 
-;; (defparameter *vertex-shader*
-;;   "#version 330 core
-;; layout (location = 0) in vec3 pos;
-;; void main()
-;; {
-;;   gl_Position = vec4(pos.x, pos.y, pos.z, 1.0);
-;; }")
+;;; g(raphical programs)
 
-;; (defparameter *fragment-shader*
-;;   "#version 330 core
-;; out vec4 FragColor;
-;; void main()
-;; {
-;;   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-;; }")
-
-;; (defclass main-window (glfw:window)
-;;   ((glfw:title :initform "LearnGL")
-;;    (context-version-major :initform 3)
-;;    (opengl-profile :initform :opengl-core-profile)))
-
-;; (defmacro set-draw-commands (&body body)
-;;   `(progn (setf *commands* (lambda ()
-;;                              ,@body))
-;;           (when *window* (glfw:swap-buffers *window*))))
-
-;; (defun draw-color (&optional (commands *commands*))
-;;   (funcall commands))
-
-;; (defun kill-window? ()
-;;   *die*)
-
-;; (defun kill-window ()
-;;   (setf *die* T))
-
-;; (defun ->vert-shader (shader)
-;;   (let ((blob (gl:create-shader :vertex-shader)))
-;;     (gl:shader-source blob shader)
-;;     (gl:compile-shader blob)
-;;     blob))
-
-;; (defun ->frag-shader (shader)
-;;   (let ((blob (gl:create-shader :fragment-shader)))
-;;     (gl:shader-source blob shader)
-;;     (gl:compile-shader blob)
-;;     blob))
-
-;; (defun link-shaders (vert frag)
-;;   (setf *shader-program* (gl:create-program))
-;;   (gl:attach-shader *shader-program* vert)
-;;   (gl:attach-shader *shader-program* frag)
-;;   (gl:link-program  *shader-program*)
-;;   (gl:delete-shader vert)
-;;   (gl:delete-shader frag))
-
-;; (defun compile-shader (vert frag)
-;;   (link-shaders (->vert-shader vert)
-;;                 (->frag-shader frag)))
-
-;; (defun fill-array (verts &optional (type :float) (count (length verts)))
-;;   (let ((arr (gl:alloc-gl-array type count)))
-;;     (dotimes (i (length verts) arr)
-;;       (setf (gl:glaref arr i)
-;;             (elt verts i)))))
-
-;; (defun init-buffer ()
-;;   (setf *vao* (gl:gen-vertex-array)
-;;         *vbo* (gl:gen-buffer))
-;;   (gl:bind-vertex-array *vao*)
-;;   (gl:bind-buffer :array-buffer *vbo*)
-;;   (gl:buffer-data :array-buffer :static-draw (fill-array *verts*))
-;;   (gl:vertex-attrib-pointer 0 3 :float 0 (* 3 (cffi:foreign-type-size :float)) 0)
-;;   (gl:enable-vertex-attrib-array 0)
-;;   (gl:bind-buffer :array-buffer 0)
-;;   (gl:bind-vertex-array 0))
-
-;; (defun shutdown ()
-;;   (glfw:destroy *window*)
-;;   (glfw:shutdown)
-;;   (setf *window* NIL)
-;;   (setf *die* NIL))
-
-;; (defun kill-buffer ()
-;;   (gl:use-program 0)
-;;   (gl:bind-vertex-array 0)
-
-;;   (gl:delete-vertex-arrays (list *vao*))
-;;   (gl:delete-buffers (list *vbo*))
-;;   (gl:delete-program *shader-program*)
-
-;;   (setf *vao* NIL)
-;;   (setf *vbo* NIL)
-;;   (setf *shader-program* NIL))
-
-;; (defun create-window (&rest keys)
-;;   (unless *window*
-;;     (glfw:init)
-;;     (glfw:make-current (setf *window* (apply #'make-instance 'main-window keys)))
-;;     (gl:viewport 0 0 800 600)
-;;     (compile-shader *vertex-shader* *fragment-shader*)
-;;     (init-buffer)
-;;     (format T "Launching window~%")
-;;     (unwind-protect
-;;          (loop until (kill-window?)
-;;                do (glfw:poll-events :timeout 0.03)
-;;                   (draw-color)
-;;                   (gl:use-program *shader-program*)
-;;                   (gl:bind-vertex-array *vao*)
-;;                   (gl:draw-arrays :triangles 0 3)
-;;                   (gl:bind-vertex-array 0)
-;;                   (glfw:swap-buffers *window*)
-;;                   (sleep 0.03)
-;;                   (restart-case (swank::process-requests t)
-;;                     (continue () :report "Main Loop: Continue")))
-;;       (kill-buffer)
-;;       (shutdown)
-;;       (format T "~%Killed window."))))
-
-(defclass main-window (glfw:window)
+(defclass g (glfw:window)
   ((glfw:title :initform "LearnGL")
    (context-version-major :initform 3)
    (opengl-profile :initform :opengl-core-profile)))
 
-(defmethod glfw:key-changed ((window main-window) key scan-code action modifiers)
+;;; Bindings
+
+(defclass binding ()
+  ((name :initarg :name :accessor binding-name)
+   (prefix :initarg :prefix :accessor binding-prefix)
+   (package :initarg :package :accessor binding-package)
+   (initform :initarg :initform :accessor binding-initform)
+   (initarg :initarg :initarg :accessor binding-initarg)
+   (accessor :initarg :accessor :accessor binding-accessor)))
+
+(defun make-accessor (name prefix package)
+  (let ((symbol (alexandria:symbolicate prefix '#:- name)))
+    (if package
+        (intern (symbol-name symbol) (symbol-package prefix))
+        symbol)))
+
+(defun make-binding (name prefix &key (package nil)
+                                      (initform nil)
+                                      (initarg (alexandria:make-keyword name))
+                                      (accessor (make-accessor name prefix package)))
+  (make-instance 'binding :name name
+                          :prefix prefix
+                          :package package
+                          :initform initform
+                          :initarg initarg
+                          :accessor accessor))
+
+(defun parse-bindings (prefix binding-forms)
+  (loop :for (name value) in binding-forms
+        :collect (make-binding name prefix :initform value)))
+
+;;; Render
+
+(defun +defclass (name bindings)
+  `(defclass ,name (g)
+     (,@(loop :for binding in bindings
+              :collect `(,(binding-name binding)
+                         :initarg ,(binding-initarg binding)
+                         :accessor ,(binding-accessor binding))))))
+
+(defun +prepare (name bindings)
+  `(defmethod prepare ((render ,name)
+                       &key ,@(loop for b in bindings
+                                    collect `((,(binding-initarg b) ,(binding-name b)) ,(binding-initform b)))
+                       &allow-other-keys)
+     (setf ,@(loop for b in bindings
+                   collect `(,(binding-accessor b) render)
+                   collect (binding-name b)))))
+
+(defun +draw (name bindings body)
+  `(defmethod draw ((render ,name))
+     (with-accessors (,@(loop for b in bindings
+                              collect `(,(binding-name b) ,(binding-accessor b))))
+         render
+       ,@body)))
+
+(defmacro define-render (name binding-forms &body body)
+  (let ((bindings (parse-bindings name binding-forms)))
+    `(progn ,(+defclass name bindings)
+            ,(+prepare name bindings)
+            ,(+draw name bindings body)
+            (make-instances-obsolete ',name)
+            (find-class ',name))))
+
+;;; Exit
+
+(defun quit ()
+  "Quit the program."
+  (setf *g-should-die* t))
+
+(defun shutdown ()
+  "Destroy the glfw window context."
+  (glfw:destroy *g*)
+  (glfw:shutdown)
+  (setf *g* nil)
+  (setf *g-should-die* nil))
+
+(defun clean-buffer ()
+  "Clean/clear out the buffer"
+  (setf *vbo-handle* nil))
+
+;;; OpenGL Types
+
+(defun make-gl-array (&rest args)
+  "Allocate a GL array for vertices. Must be a length that is a multiple of 3 (a
+vertex has three points). Converts integers to floats."
+  (let ((arr (gl:alloc-gl-array :float (length args)))
+        (args (mapcar (lambda (n) (/ n 1.0)) args)))
+    (dotimes (i (length args) arr)
+      (setf (gl:glaref arr i)
+            (elt args i)))))
+
+;;; Utility
+
+(defun read-file (file)
+  "Return the contents of FILE as a string."
+  (let ((src (pathname file)))
+    (with-output-to-string (output)
+      (with-open-file (stream src)
+        (loop :for line := (read-line stream nil)
+              :while line
+              :do (format output "~a~%" line))))))
+
+;;; Conditions
+
+(define-condition shader-link-error (error)
+  ((shader-log :initarg :shader-log :initform nil :reader shader-log))
+  (:report (lambda (condition stream)
+             (format stream "Error linking shader program:~%~a" (shader-log condition)))))
+
+(define-condition invalid-shader-program (error)
+  ((shader-log :initarg :shader-log :initform nil :reader shader-log))
+  (:report (lambda (condition stream)
+             (format stream "Invalid shader program:~%~a" (shader-log condition)))))
+
+;;; Input
+
+(defmethod glfw:key-changed ((window g) key scan-code action modifiers)
   (when (eq key :escape)
-    (kill-window)))
+    (quit)))
 
-;; (set-draw-commands
-;;   (gl:clear-color 0.3 0.4 0.7 1.0)
-;;   (gl:clear :color-buffer))
+(defun process-input ()
+  "Allows for input events to be sent to the window."
+  (glfw:poll-events :timeout 0.03))
 
-;; (defmethod glfw:char-entered ((window main-window) code-point))
-;; (defmethod glfw:key-state (key (window main-window)))
-;; (defmethod glfw:window-resized ((window main-window) width height))
-;; (defmethod glfw:window-moved ((window main-window) xpos ypos))
+;;; Shaders
+
+(defun create-vertex-buffer ()
+  "Initialize the vertex buffer: contains the coordinates of the object we want
+to create and allocates memory for the GPU."
+  (let ((verts (make-gl-array -1 -1 0 0 1 0 1 -1 0)))
+    ;; Allocate/reserve an unused handle in the namespace.
+    (setf *vbo-handle* (gl:gen-buffer))
+    ;; Create an object (an array buffer) and assocate or bind it to our
+    ;; handle. This informs our opengl driver that we plan to populate it with
+    ;; vertex attributes (positions, textures, colors etc).
+    (gl:bind-buffer :array-buffer *vbo-handle*)
+    ;; Finally, we actually load the position of our vertex into the vertex
+    ;; buffer object. Notice the first argument: it is the target to which we
+    ;; bound our handle. We don't have to specify our handle again because
+    ;; OpenGL already knows which handle is currently bound to the
+    ;; :array-buffer target.
+    (gl:buffer-data :array-buffer :static-draw verts)))
+
+(defun add-shader (program src type)
+  (let ((shader (gl:create-shader type)))
+    (assert (not (zerop shader)))
+    (gl:shader-source shader src)
+    (gl:compile-shader shader)
+    (unwind-protect (assert (gl:get-shader shader :compile-status))
+      (format t "~&[Shader Info]~%----------~%~a" (gl:get-shader-info-log shader)))
+    (gl:attach-shader program shader)))
+
+(defun check-program (program condition status)
+  (if (null (gl:get-program program status))
+      (error condition :shader-log (gl:get-program-info-log program))
+      (gl:get-program-info-log program)))
+
+(defun compile-shaders ()
+  (let ((program (gl:create-program)))
+    (assert (not (zerop program)))
+    (add-shader program (read-file *vs-source*) :vertex-shader)
+    (add-shader program (read-file *fs-source*) :fragment-shader)
+    (gl:link-program program)
+    (check-program program 'shader-link-error :link-status)
+    (gl:validate-program program)
+    (check-program program 'invalid-shader-program :validate-status)
+    (gl:use-program program)))
+
+;;; Init
+
+(defun init (render-name)
+  (glfw:init)
+  (glfw:make-current (setf *g* (make-instance render-name)))
+  (prepare *g*)
+  (gl:viewport 0 0 800 600)
+  ;; Set the color of the window when we clear it.
+  (gl:clear-color 1.0 0.0 0.0 0.0)
+  (create-vertex-buffer)
+  (compile-shaders))
+
+(defun main ()
+  (unwind-protect
+       (loop until *g-should-die*
+             do (process-input)
+                (draw *g*)
+                (sleep 0.03)
+                (restart-case (swank::process-requests t)
+                  (continue () :report "Main Loop: Continue")))
+    (shutdown)
+    (clean-buffer)
+    (format t "~%Killed window.")))
+
+(defun start (render-name)
+  (unless *g*
+    (init render-name)
+    (main)))
+
