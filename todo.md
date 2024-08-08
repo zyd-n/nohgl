@@ -1,9 +1,9 @@
 ## Adding Shaders still sucks
 
 Fine for now as a noob but inevitably we need
-- [] A way of adding many shaders and their respective GL code
-- [] A way of recompiling shaders as our main program is running
-- [] More things that I'm probably not thinking of or aware of yet.
+- [ ] A way of adding many shaders and their respective GL code
+- [ ] A way of recompiling shaders as our main program is running
+- [ ] More things that I'm probably not thinking of or aware of yet.
 
 ## Better error handling in the REPL
 
