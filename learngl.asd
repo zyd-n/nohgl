@@ -11,11 +11,6 @@
                :cl-opengl
                :cl-autowrap)
   :components ((:file "package")
-               ;; (:file "glew")
-               ;; (:file "basic-window")
-               ;; (:file "dot")
-               (:file "hello-shader")
                (:file "common")
-               (:file "hello-shader-main")
                (:file "documentation")
-               ))
+               (:file "hello-shader")))
