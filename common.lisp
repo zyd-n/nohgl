@@ -31,10 +31,11 @@
         (intern (symbol-name symbol) (symbol-package prefix))
         symbol)))
 
-(defun make-binding (name prefix &key (package nil)
-                                      (initform nil)
-                                      (initarg (alexandria:make-keyword name))
-                                      (accessor (make-accessor name prefix package)))
+(defun make-binding (name &key (prefix nil)
+                               (package nil)
+                               (initform nil)
+                               (initarg (alexandria:make-keyword name))
+                               (accessor (make-accessor name prefix package)))
   (make-instance 'binding :name name
                           :prefix prefix
                           :package package
