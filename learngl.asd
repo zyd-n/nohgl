@@ -9,7 +9,7 @@
                :serapeum
                :glfw
                :cl-opengl
-               :cl-autowrap)
+               :closer-mop)
   :components ((:file "package")
                (:file "common")
                (:file "documentation")
