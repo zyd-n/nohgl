@@ -1,12 +1,16 @@
 (in-package #:learngl)
 
-
-(setf (documentation 'make-gl-array 'function)
-      "Allocate a GL array for vertices.")
+(setf (documentation 'clean-buffer) "Clean/clear out the buffer")
+(setf (documentation 'quit 'function) "Quit the program.")
+(setf (documentation 'read-file 'function) "Return the contents of FILE as a string. Accepts a string or pathname.")
+(setf (documentation 'make-gl-array 'function) "Allocate a GL array for vertices.")
+(setf (documentation 'process-input 'function) "Allow input events to be sent to the window.")
 
 (setf (documentation (find-class 'g) t)
       "Represents a (g)raphical program and is responsible for setting GLFW window options. All our renders are subclasses of g.")
 
+(setf (documentation 'create-vertex-buffer 'function)
+      "Initialize the vertex buffer: contains the coordinates of the object we want to create and allocates memory for the GPU.")
 
 (setf (documentation 'define-render 'function)
       "Macro responsible for creating renders: OpenGL programs. Any OpenGL command goes here (aside from shader initialization code). Allows one to create local variables that are initialized upon compile and then updated for every iteration of the main loop during run-time, as well as pass options to the GLFW backend.

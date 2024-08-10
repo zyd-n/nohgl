@@ -43,7 +43,6 @@
                           :initarg initarg
                           :accessor accessor))
 
-
 (defun options->bindings (class-name options)
   (let ((super-slots (closer-mop:class-slots (find-class class-name))))
     (loop for (option-name value) in options
@@ -95,7 +94,6 @@
 ;;; Exit
 
 (defun quit ()
-  "Quit the program."
   (setf *g-should-die* t))
 
 (defun shutdown ()
@@ -106,7 +104,6 @@
   (setf *g-should-die* nil))
 
 (defun clean-buffer ()
-  "Clean/clear out the buffer"
   (setf *vbo-handle* nil))
 
 ;;; OpenGL Types
@@ -121,7 +118,6 @@
 ;;; Utility
 
 (defun read-file (file)
-  "Return the contents of FILE as a string."
   (let ((src (pathname file)))
     (with-output-to-string (output)
       (with-open-file (stream src)
@@ -148,14 +144,11 @@
     (quit)))
 
 (defun process-input ()
-  "Allows for input events to be sent to the window."
   (glfw:poll-events :timeout 0.03))
 
 ;;; Shaders
 
 (defun create-vertex-buffer ()
-  "Initialize the vertex buffer: contains the coordinates of the object we want
-to create and allocates memory for the GPU."
   (let ((verts (make-gl-array -1.0 -1.0 +0.0
                               +0.0 +1.0 +0.0
                               +1.0 -1.0 +0.0)))
