@@ -99,11 +99,9 @@
 
 ;;; OpenGL Types
 
+(declaim (ftype (function (&rest single-float) gl:gl-array)))
 (defun make-gl-array (&rest args)
-  "Allocate a GL array for vertices. Must be a length that is a multiple of 3 (a
-vertex has three points). Converts integers to floats."
-  (let ((arr (gl:alloc-gl-array :float (length args)))
-        (args (mapcar (lambda (n) (/ n 1.0)) args)))
+  (let ((arr (gl:alloc-gl-array :float (length args))))
     (dotimes (i (length args) arr)
       (setf (gl:glaref arr i)
             (elt args i)))))
