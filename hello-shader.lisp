@@ -1,7 +1,8 @@
 (in-package #:learngl)
 
 (define-render hello-shaders
-    ((c 0.0))
+    (:options (title "hello shaders, once again <3"))
+    (:locals (c 0.0))
   (flet ((keep-house ()
            (gl:clear :color-buffer)
            (gl:bind-buffer :array-buffer *vbo-handle*)

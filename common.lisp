@@ -43,9 +43,20 @@
                           :initarg initarg
                           :accessor accessor))
 
+
+(defun options->bindings (class-name options)
+  (let ((super-slots (closer-mop:class-slots (find-class class-name))))
+    (loop for (option-name value) in options
+          for match = (find option-name super-slots :test #'string= :key #'closer-mop:slot-definition-name)
+          for slot-name = (closer-mop:slot-definition-name match)
+          for initarg = (or (first (closer-mop:slot-definition-initargs match))
+                            (alexandria:make-keyword slot-name))
+          when match collect
+             (make-binding slot-name :initform value :initarg initarg :accessor slot-name))))
+
 (defun parse-bindings (prefix binding-forms)
   (loop :for (name value) in binding-forms
-        :collect (make-binding name prefix :initform value)))
+        :collect (make-binding name :prefix prefix :initform value)))
 
 ;;; Render
 
@@ -72,10 +83,11 @@
          render
        ,@body)))
 
-(defmacro define-render (name binding-forms &body body)
-  (let ((bindings (parse-bindings name binding-forms)))
+(defmacro define-render (name options binding-forms &body body)
+  (let ((existing-bindings (options->bindings 'g (rest options)))
+        (bindings (parse-bindings name (rest binding-forms))))
     `(progn ,(+defclass name bindings)
-            ,(+prepare name bindings)
+            ,(+prepare name (append bindings existing-bindings))
             ,(+draw name bindings body)
             (make-instances-obsolete ',name)
             (find-class ',name))))
