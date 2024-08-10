@@ -1,17 +1,21 @@
 (in-package #:learngl)
 
+
+(setf (documentation 'make-gl-array 'function)
+      "Allocate a GL array for vertices.")
+
 (setf (documentation (find-class 'g) t)
       "Represents a (g)raphical program and is responsible for setting GLFW window options. All our renders are subclasses of g.")
 
 
 (setf (documentation 'define-render 'function)
-      "Macro responsible for creating renders: OpenGL programs. Any OpenGL command goes here (aside from shader initialization code). Allows one to create local variables that are initialized upon compile and then updated for every iteration of the main loop during run-time.
+      "Macro responsible for creating renders: OpenGL programs. Any OpenGL command goes here (aside from shader initialization code). Allows one to create local variables that are initialized upon compile and then updated for every iteration of the main loop during run-time, as well as pass options to the GLFW backend.
 
 (define-render some-kind-of-name
-    ((local1 'v1)
-     (local2 'v2))
-  (* 4 2)
-  (gl:clear-color 1 0 0 1))
+    (:options (title \"hello shaders, once again <3\"))
+    (:locals (c 0.0))
+  (gl:clear-color c 0 0 1)
+  (format t \"yippee\"))
 
 ")
 
@@ -29,7 +33,7 @@ Return a form of:
 (defclass NAME (g) (BINDINGS...))")
 
 (setf (documentation '+prepare 'function)
-      "Act as an initializer for the render instanced passed in.
+      "Act as an initializer for the render instance passed in.
 
 Return a form of:
 
