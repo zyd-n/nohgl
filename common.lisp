@@ -145,7 +145,9 @@ vertex has three points). Converts integers to floats."
 (defun create-vertex-buffer ()
   "Initialize the vertex buffer: contains the coordinates of the object we want
 to create and allocates memory for the GPU."
-  (let ((verts (make-gl-array -1 -1 0 0 1 0 1 -1 0)))
+  (let ((verts (make-gl-array -1.0 -1.0 +0.0
+                              +0.0 +1.0 +0.0
+                              +1.0 -1.0 +0.0)))
     ;; Allocate/reserve an unused handle in the namespace.
     (setf *vbo-handle* (gl:gen-buffer))
     ;; Create an object (an array buffer) and assocate or bind it to our
