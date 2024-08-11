@@ -1,6 +1,6 @@
 (in-package #:learngl)
 
-(setf (documentation 'clean-buffer) "Clean/clear out the buffer")
+(setf (documentation 'clean-buffer 'function) "Clean/clear out the buffer")
 (setf (documentation 'quit 'function) "Quit the program.")
 (setf (documentation 'read-file 'function) "Return the contents of FILE as a string. Accepts a string or pathname.")
 (setf (documentation 'make-gl-array 'function) "Allocate a GL array for vertices.")

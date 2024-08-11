@@ -149,7 +149,7 @@
     (quit)))
 
 (defun process-input ()
-  (glfw:poll-events :timeout 0.03))
+  (glfw:poll-events))
 
 ;;; Shaders
 
@@ -212,7 +212,6 @@
        (loop until *g-should-die*
              do (process-input)
                 (draw *g*)
-                (sleep 0.03)
                 (restart-case (swank::process-requests t)
                   (continue () :report "Main Loop: Continue")))
     (shutdown)
