@@ -44,8 +44,13 @@
                           :accessor accessor))
 
 (defun options->bindings (class-name options)
-  (let ((super-slots (closer-mop:class-slots (find-class class-name))))
-    (loop for (option-name value) in options
+  ;; Not sure why this needs to be done but fixes compilation error when first
+  ;; compiling and expanding a `(define-render ...)` form.
+  (let ((class (find-class class-name)))
+    (unless (closer-mop:class-finalized-p class)
+      (closer-mop:finalize-inheritance class))
+    (loop with super-slots = (closer-mop:class-slots class)
+          for (option-name value) in options
           for match = (find option-name super-slots :test #'string= :key #'closer-mop:slot-definition-name)
           for slot-name = (closer-mop:slot-definition-name match)
           for initarg = (or (first (closer-mop:slot-definition-initargs match))
