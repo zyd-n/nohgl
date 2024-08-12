@@ -1,4 +1,4 @@
-(in-package #:learngl)
+(in-package #:nohgl)
 
 ;;; Globals
 
@@ -7,11 +7,12 @@
 (defvar *vbo-handle* nil)
 (defvar *vs-source* "shaders/hello.vert")
 (defvar *fs-source* "shaders/hello.frag")
+(defvar gscale-location)
 
 ;;; g(raphical programs)
 
 (defclass g (glfw:window)
-  ((glfw:title :initform "LearnGL")
+  ((glfw:title :initform "nohgl")
    (context-version-major :initform 3)
    (opengl-profile :initform :opengl-core-profile)))
 
@@ -130,6 +131,11 @@
               :while line
               :do (format output "~a~%" line))))))
 
+(defun fill-array (&rest args)
+  (let ((arr (make-array (length args))))
+    (dotimes (i (length args) arr)
+      (setf (aref arr i) (elt args i)))))
+
 ;;; Conditions
 
 (define-condition shader-link-error (error)
@@ -141,6 +147,11 @@
   ((shader-log :initarg :shader-log :initform nil :reader shader-log))
   (:report (lambda (condition stream)
              (format stream "Invalid shader program:~%~a" (shader-log condition)))))
+
+(define-condition uniform-location-error (error)
+  ((uniform :initarg :uniform :initform nil :reader uniform))
+  (:report (lambda (condition stream)
+             (format stream "Error getting uniform location of ~s" (uniform condition)))))
 
 ;;; Input
 
@@ -191,6 +202,10 @@
     (add-shader program (read-file *fs-source*) :fragment-shader)
     (gl:link-program program)
     (check-program program 'shader-link-error :link-status)
+    ;; We must place the call to `get-uniform-location' during link time, aka
+    ;; after `gl:link-program'.
+    (when (= -1 (setf gscale-location (gl:get-uniform-location program "gScale")))
+      (error 'uniform-location-error :uniform "gScale"))
     (gl:validate-program program)
     (check-program program 'invalid-shader-program :validate-status)
     (gl:use-program program)))

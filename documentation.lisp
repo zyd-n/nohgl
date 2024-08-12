@@ -1,4 +1,4 @@
-(in-package #:learngl)
+(in-package #:nohgl)
 
 (setf (documentation 'clean-buffer 'function) "Clean/clear out the buffer")
 (setf (documentation 'quit 'function) "Quit the program.")

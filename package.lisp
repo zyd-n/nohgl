@@ -1,6 +1,6 @@
 (in-package #:cl-user)
 
-(defpackage #:learngl
+(defpackage #:nohgl
   (:use #:cl)
   (:local-nicknames (#:alex #:alexandria)
                     (#:sera #:serapeum)

@@ -1,9 +1,9 @@
 (in-package #:cl-user)
 
-(asdf:defsystem learngl
+(asdf:defsystem nohgl
   :author "zyd"
   :license "Public Domain"
-  :description "Learn OpenGL"
+  :description "A library and testbed for OpenGL shenanigans."
   :serial T
   :depends-on (:alexandria
                :serapeum
