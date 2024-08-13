@@ -3,18 +3,19 @@
 ;;; Globals
 
 (defvar *g* nil)
-(defvar *g-should-die* nil)
 (defvar *vbo-handle* nil)
 (defvar *vs-source* "shaders/hello.vert")
 (defvar *fs-source* "shaders/hello.frag")
 (defvar gscale-location)
+(defvar *world-stats* nil)
 
 ;;; g(raphical programs)
 
 (defclass g (glfw:window)
   ((glfw:title :initform "nohgl")
    (context-version-major :initform 3)
-   (opengl-profile :initform :opengl-core-profile)))
+   (opengl-profile :initform :opengl-core-profile)
+   (user-quits :initform nil :accessor should-quit)))
 
 ;;; Bindings
 
@@ -56,8 +57,8 @@
           for slot-name = (closer-mop:slot-definition-name match)
           for initarg = (or (first (closer-mop:slot-definition-initargs match))
                             (alexandria:make-keyword slot-name))
-          when match collect
-             (make-binding slot-name :initform value :initarg initarg :accessor slot-name))))
+          do (when match (push (make-binding slot-name :initform value :initarg initarg :accessor slot-name)
+                               bindings)))))
 
 (defun parse-bindings (prefix binding-forms)
   (loop :for (name value) in binding-forms
