@@ -9,7 +9,8 @@
                :serapeum
                :glfw
                :cl-opengl
-               :closer-mop)
+               :closer-mop
+               :local-time)
   :components ((:file "package")
                (:file "common")
                (:file "documentation")

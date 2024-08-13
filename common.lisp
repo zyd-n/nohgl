@@ -100,14 +100,14 @@
 ;;; Exit
 
 (defun quit ()
-  (setf *g-should-die* t))
+  (with-slots (quit) *g*
+    (setf (should-quit *g*) t)))
 
 (defun shutdown ()
   "Destroy the glfw window context."
   (glfw:destroy *g*)
   (glfw:shutdown)
-  (setf *g* nil)
-  (setf *g-should-die* nil))
+  (setf *g* nil))
 
 (defun clean-buffer ()
   (setf *vbo-handle* nil))
@@ -212,6 +212,41 @@
     (check-program program 'invalid-shader-program :validate-status)
     (gl:use-program program)))
 
+;;; Time Step
+
+(defclass world-clock ()
+  ((duration :initform (error "Must supply a duration of some kind.") :initarg :duration :accessor duration)
+   (ticks :reader ticks :initform 0)
+   (frames :reader frames :initform 0.0)))
+
+(defun nsec (n)
+  (local-time:timestamp+ (local-time:now) n :sec))
+
+(defun time-by (duration)
+  (make-instance 'world-clock :duration duration))
+
+(defgeneric forward-time (clock))
+
+(defmethod forward-time ((clock world-clock))
+  (with-slots (duration ticks frames) clock
+    (when (local-time:timestamp>= (local-time:now) duration)
+      (setf (duration clock) (nsec 1))
+      (incf ticks)
+      (log-time clock)
+      (decf frames frames))
+    (incf frames))
+  clock)
+
+(defgeneric log-time (clock))
+
+(defmethod log-time ((clock world-clock))
+  (when *world-stats*
+    (with-slots (ticks frames) clock
+      (format t "Tick: ~s~%FPS: ~s~%Miliseconds: ~s~%--------------------~%~%" ticks frames (/ 1000.0 frames)))))
+
+(defun debug-with-time (&optional (enable t))
+  (setf *world-stats* enable))
+
 ;;; Init
 
 (defun init (render-name)
@@ -225,15 +260,18 @@
   (compile-shaders))
 
 (defun main ()
-  (unwind-protect
-       (loop until *g-should-die*
-             do (process-input)
-                (draw *g*)
-                (restart-case (swank::process-requests t)
-                  (continue () :report "Main Loop: Continue")))
-    (shutdown)
-    (clean-buffer)
-    (format t "~%Killed window.")))
+  (with-slots (user-quits) *g*
+    (let ((clock (time-by (nsec 1))))
+      (unwind-protect
+           (loop :until user-quits
+                 :do (forward-time clock)
+                     (process-input)
+                     (draw *g*)
+                     (restart-case (swank::process-requests t)
+                       (continue () :report "Main Loop: Continue")))
+        (shutdown)
+        (clean-buffer)
+        (format t "~%Killed window.")))))
 
 (defun start (render-name)
   (unless *g*
