@@ -187,7 +187,9 @@
     (gl:shader-source shader src)
     (gl:compile-shader shader)
     (unwind-protect (assert (gl:get-shader shader :compile-status))
-      (format t "~&[Shader Info]~%----------~%~a" (gl:get-shader-info-log shader)))
+      (let ((shader-info (gl:get-shader-info-log shader)))
+        (unless (zerop (length shader-info))
+          (format t "~&[Shader Info]~%----------~%~a" shader-info))))
     (gl:attach-shader program shader)))
 
 (defun check-program (program condition status)
