@@ -263,19 +263,18 @@
 (defun main ()
   (with-slots (user-quits) *g*
     (let ((clock (time-by (nsec 1))))
-      (unwind-protect
-           (loop :until user-quits
-                 :do (forward-time clock)
-                     (process-input)
-                     (draw *g*)
-                     (restart-case (swank::process-requests t)
-                       (continue () :report "Main Loop: Continue")))
-        (shutdown)
-        (clean-buffer)
-        (format t "~%Killed window.")))))
+      (loop :until user-quits
+            :do (forward-time clock)
+                (process-input)
+                (draw *g*)
+                (restart-case (swank::process-requests t)
+                  (continue () :report "Main Loop: Continue"))))))
 
 (defun start (render-name)
   (unless *g*
-    (init render-name)
-    (main)))
+    (unwind-protect (progn (init render-name)
+                           (main))
+      (shutdown)
+      (clean-buffer)
+      (format t "~%Killed window."))))
 
