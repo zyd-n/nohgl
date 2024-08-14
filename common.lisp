@@ -242,7 +242,7 @@
   (glfw:make-current (setf *g* (apply #'make-instance render-name options)))
   (prepare *g*)
   (gl:viewport 0 0 900 600)
-  (gl:clear-color 1.0 0.0 0.0 0.0)
+  (gl:clear-color .09 .09 .09 0)
   (create-vertex-buffer)
   (compile-shaders))
 
