@@ -45,21 +45,6 @@
                           :initarg initarg
                           :accessor accessor))
 
-(defun options->bindings (class-name options)
-  ;; Not sure why this needs to be done but fixes compilation error when first
-  ;; compiling and expanding a `(define-render ...)` form.
-  (let ((class (find-class class-name)))
-    (unless (closer-mop:class-finalized-p class)
-      (closer-mop:finalize-inheritance class))
-    (loop with super-slots = (closer-mop:class-slots class)
-          for (option-name value) in options
-          for match = (find option-name super-slots :test #'string= :key #'closer-mop:slot-definition-name)
-          for slot-name = (closer-mop:slot-definition-name match)
-          for initarg = (or (first (closer-mop:slot-definition-initargs match))
-                            (alexandria:make-keyword slot-name))
-          do (when match (push (make-binding slot-name :initform value :initarg initarg :accessor slot-name)
-                               bindings)))))
-
 (defun parse-bindings (prefix binding-forms)
   (loop :for (name value) in binding-forms
         :collect (make-binding name :prefix prefix :initform value)))
@@ -77,7 +62,7 @@
   `(defmethod prepare ((render ,name)
                        &key ,@(loop for b in bindings
                                     collect `((,(binding-initarg b) ,(binding-name b)) ,(binding-initform b)))
-                       &allow-other-keys)
+                            &allow-other-keys)
      (setf ,@(loop for b in bindings
                    collect `(,(binding-accessor b) render)
                    collect (binding-name b)))))
@@ -89,11 +74,10 @@
          render
        ,@body)))
 
-(defmacro define-render (name options binding-forms &body body)
-  (let ((existing-bindings (options->bindings 'g (rest options)))
-        (bindings (parse-bindings name (rest binding-forms))))
+(defmacro define-render (name locals &body body)
+  (let ((bindings (parse-bindings name locals)))
     `(progn ,(+defclass name bindings)
-            ,(+prepare name (append bindings existing-bindings))
+            ,(+prepare name bindings)
             ,(+draw name bindings body)
             (make-instances-obsolete ',name)
             (find-class ',name))))
@@ -168,7 +152,10 @@
 (defun create-vertex-buffer ()
   (let ((verts (make-gl-array -1.0 -1.0 +0.0
                               +0.0 +1.0 +0.0
-                              +1.0 -1.0 +0.0)))
+                              +1.0 -1.0 +0.0
+                              +0.0 -1.0 +0.0
+                              -1.0 +1.0 +0.0
+                              +1.0 +1.0 +0.0)))
     ;; Allocate/reserve an unused handle in the namespace.
     (setf *vbo-handle* (gl:gen-buffer))
     ;; Create an object (an array buffer) and assocate or bind it to our
@@ -250,12 +237,11 @@
 
 ;;; Init
 
-(defun init (render-name)
+(defun init (render-name options)
   (glfw:init)
-  (glfw:make-current (setf *g* (make-instance render-name)))
+  (glfw:make-current (setf *g* (apply #'make-instance render-name options)))
   (prepare *g*)
-  (gl:viewport 0 0 800 600)
-  ;; Set the color of the window when we clear it.
+  (gl:viewport 0 0 900 600)
   (gl:clear-color 1.0 0.0 0.0 0.0)
   (create-vertex-buffer)
   (compile-shaders))
@@ -270,9 +256,9 @@
                 (restart-case (swank::process-requests t)
                   (continue () :report "Main Loop: Continue"))))))
 
-(defun start (render-name)
+(defun start (render-name &rest options)
   (unless *g*
-    (unwind-protect (progn (init render-name)
+    (unwind-protect (progn (init render-name options)
                            (main))
       (shutdown)
       (clean-buffer)
