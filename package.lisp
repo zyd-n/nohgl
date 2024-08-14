@@ -1,7 +1,7 @@
 (in-package #:cl-user)
 
 (defpackage #:nohgl
-  (:use #:cl)
+  (:use #:cl #:org.shirakumo.fraf.math)
   (:local-nicknames (#:alex #:alexandria)
                     (#:sera #:serapeum)
                     (#:glfw #:org.shirakumo.fraf.glfw)

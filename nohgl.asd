@@ -10,7 +10,8 @@
                :glfw
                :cl-opengl
                :closer-mop
-               :local-time)
+               :local-time
+               :3d-math)
   :components ((:file "package")
                (:file "common")
                (:file "documentation")
