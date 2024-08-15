@@ -1,9 +1,7 @@
 ## Adding Shaders still sucks
 
-- A way of adding many shaders and their respective GL code
 - A way of recompiling shaders as our main program is running
 - A known directory (or many) to look for shader source location.
-- Represent shaders as classes and/or somehow tied to the `define-render` api.
 
 ## Better error handling in the REPL
 

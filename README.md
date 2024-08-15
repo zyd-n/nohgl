@@ -1,6 +1,6 @@
 # nohgl
 
-Testbed for learning Graphics/OpenGL
+A personal library and testbed for OpenGL theatrics.
 
 # Resources
 

@@ -3,10 +3,7 @@
 ;;; Globals
 
 (defvar *g* nil)
-(defvar *vbo-handle* nil)
-(defvar *vs-source* "shaders/hello.vert")
-(defvar *fs-source* "shaders/hello.frag")
-(defvar gscale-location)
+(defvar *vaos* (make-hash-table :test 'equal))
 (defvar *world-stats* nil)
 
 ;;; g(raphical programs)
@@ -94,17 +91,13 @@
   (glfw:shutdown)
   (setf *g* nil))
 
-(defun clean-buffer ()
-  (setf *vbo-handle* nil))
-
-;;; OpenGL Types
-
-(declaim (ftype (function (&rest single-float) gl:gl-array)))
-(defun make-gl-array (&rest args)
-  (let ((arr (gl:alloc-gl-array :float (length args))))
-    (dotimes (i (length args) arr)
-      (setf (gl:glaref arr i)
-            (elt args i)))))
+(defun free (vaos)
+  (loop :for vao-store being the hash-value of vaos
+        :do (with-slots (vao vbo ebo program) vao-store
+              (gl:delete-vertex-arrays (list vao))
+              (gl:delete-buffers (list vbo))
+              (gl:delete-buffers (list ebo))
+              (gl:delete-program program))))
 
 ;;; Utility
 
@@ -116,12 +109,22 @@
               :while line
               :do (format output "~a~%" line))))))
 
-(defun fill-array (&rest args)
-  (let ((arr (make-array (length args))))
+(defun gfill (type &rest args)
+  (let ((arr (gl:alloc-gl-array type (length args))))
     (dotimes (i (length args) arr)
-      (setf (aref arr i) (elt args i)))))
+      (setf (gl:glaref arr i)
+            (elt args i)))))
 
-;;; Conditions
+;;; Input
+
+(defmethod glfw:key-changed ((window g) key scan-code action modifiers)
+  (when (eq key :escape)
+    (quit)))
+
+(defun process-input ()
+  (glfw:poll-events))
+
+;;; Shaders
 
 (define-condition shader-link-error (error)
   ((shader-log :initarg :shader-log :initform nil :reader shader-log))
@@ -138,36 +141,104 @@
   (:report (lambda (condition stream)
              (format stream "Error getting uniform location of ~s" (uniform condition)))))
 
-;;; Input
+(define-condition vao-without-verts (error)
+  ((uniform :initarg :uniform :initform nil :reader uniform))
+  (:report (lambda (condition stream)
+             (declare (ignore condition))
+             (format stream "Must supply vertices in order to draw primitives. Did you forget to pass in :verts?"))))
 
-(defmethod glfw:key-changed ((window g) key scan-code action modifiers)
-  (when (eq key :escape)
-    (quit)))
+(define-condition vao-without-vertex-shader (error)
+  ((uniform :initarg :uniform :initform nil :reader uniform))
+  (:report (lambda (condition stream)
+             (declare (ignore condition))
+             (format stream "Must supply a vertex shader (source-file) when creating a VAO instance. Did you forget to pass in :vertex-shader?"))))
 
-(defun process-input ()
-  (glfw:poll-events))
+(define-condition vao-without-fragment-shader (error) ()
+  (:report (lambda (condition stream)
+             (declare (ignore condition))
+             (format stream "Must supply a fragment shader (source-file) when creating a VAO instance. Did you forget to pass in :fragment-shader?"))))
 
-;;; Shaders
+(defclass store ()
+  ((vao :accessor vao)
+   (vbo :accessor vbo)
+   (ebo :accessor ebo)
+   (program :accessor program)
+   (uniforms :accessor uniforms)
+   (indices :initarg :indices :initform nil :accessor indices)
+   (verts :initarg :verts :accessor verts :initform (error 'vao-without-verts))
+   (vertex-shader :initarg :vertex-shader :accessor vertex-shader :initform (error 'vao-without-vertex-shader))
+   (fragment-shader :initarg :fragment-shader :accessor fragment-shader :initform (error 'vao-without-fragment-shader))))
 
-(defun create-vertex-buffer ()
-  (let ((verts (make-gl-array -1.0 -1.0 +0.0
-                              +0.0 +1.0 +0.0
-                              +1.0 -1.0 +0.0
-                              +0.0 -1.0 +0.0
-                              -1.0 +1.0 +0.0
-                              +1.0 +1.0 +0.0)))
-    ;; Allocate/reserve an unused handle in the namespace.
-    (setf *vbo-handle* (gl:gen-buffer))
-    ;; Create an object (an array buffer) and assocate or bind it to our
-    ;; handle. This informs our opengl driver that we plan to populate it with
-    ;; vertex attributes (positions, textures, colors etc).
-    (gl:bind-buffer :array-buffer *vbo-handle*)
-    ;; Finally, we actually load the position of our vertex into the vertex
-    ;; buffer object. Notice the first argument: it is the target to which we
-    ;; bound our handle. We don't have to specify our handle again because
-    ;; OpenGL already knows which handle is currently bound to the
-    ;; :array-buffer target.
-    (gl:buffer-data :array-buffer :static-draw verts)))
+(defgeneric register-vao (vao name))
+
+(defmethod register-vao ((vao store) name)
+  (setf (gethash name *vaos*) vao))
+
+(defun get-vao (vao-name)
+  (gethash vao-name *vaos*))
+
+(defgeneric register-uniforms (vao uniforms))
+
+(defmethod register-uniforms ((vao store) uniforms)
+  (loop for uniform being the hash-key of uniforms
+        do (let ((uniform-location (gl:get-uniform-location (program vao) uniform)))
+             (if (= uniform-location -1)
+                 (error 'uniform-location-error :uniform uniform)
+                 (setf (gethash uniform (uniforms vao)) uniform-location)))))
+
+(defgeneric initialize-uniforms (vao uniforms))
+
+(defmethod initialize-uniforms ((vao store) uniforms)
+  (let ((ht (make-hash-table :test 'equal)))
+    (dolist (uniform uniforms)
+      (setf (gethash uniform ht) nil))
+    (setf (uniforms vao) ht)))
+
+(defun get-uniform (uniform-name vao-store)
+  (serapeum:@ (uniforms (get-vao vao-store)) uniform-name))
+
+(defun list-of-strings-p (list)
+  (and (consp list) (every #'stringp list)))
+
+(deftype list-of-strings ()
+  `(satisfies list-of-strings-p))
+
+(declaim (ftype (function (symbol &key (:verts gl:gl-array) (:vertex-shader (or string pathname)) (:fragment-shader (or string pathname)) (:uniforms list-of-strings) (:indices gl:gl-array))) defvao))
+(defun defvao (name &key (verts (error 'vao-without-verts))
+                         (vertex-shader (error 'vao-without-vertex-shader))
+                         (fragment-shader (error 'vao-without-fragment-shader))
+                         uniforms indices)
+
+  (let ((vao-store (make-instance 'store :verts verts
+                                         :vertex-shader (read-file vertex-shader)
+                                         :fragment-shader (read-file fragment-shader)
+                                         :indices indices)))
+    (register-vao vao-store name)
+    (initialize-uniforms vao-store uniforms)))
+
+
+(defmethod initialize-vao ((vao-store store))
+  (with-slots (vao vbo ebo verts indices) vao-store
+    (setf (vao vao-store) (gl:gen-vertex-array)
+          (vbo vao-store) (gl:gen-buffer)
+          (ebo vao-store) (gl:gen-buffer))
+    (gl:bind-vertex-array vao)
+    (gl:bind-buffer :array-buffer vbo)
+    (gl:buffer-data :array-buffer :static-draw verts)
+    (gl:bind-buffer :element-array-buffer ebo)
+    (when indices (gl:buffer-data :element-array-buffer :static-draw indices))
+    (gl:vertex-attrib-pointer 0 3 :float :false (* 3 (cffi:foreign-type-size :float)) 0)
+    (gl:enable-vertex-attrib-array 0)
+    ;; unbind
+    (gl:bind-buffer :array-buffer 0)
+    (gl:bind-vertex-array 0)))
+
+(defun initialize-vaos (vaos)
+  (maphash (lambda (k v)
+             (declare (ignore k))
+             (compile-shaders v)
+             (initialize-vao v))
+           vaos))
 
 (defun add-shader (program src type)
   (let ((shader (gl:create-shader type)))
@@ -178,27 +249,29 @@
       (let ((shader-info (gl:get-shader-info-log shader)))
         (unless (zerop (length shader-info))
           (format t "~&[Shader Info]~%----------~%~a" shader-info))))
-    (gl:attach-shader program shader)))
+    (gl:attach-shader program shader)
+    shader))
 
 (defun check-program (program condition status)
   (if (null (gl:get-program program status))
       (error condition :shader-log (gl:get-program-info-log program))
       (gl:get-program-info-log program)))
 
-(defun compile-shaders ()
-  (let ((program (gl:create-program)))
-    (assert (not (zerop program)))
-    (add-shader program (read-file *vs-source*) :vertex-shader)
-    (add-shader program (read-file *fs-source*) :fragment-shader)
-    (gl:link-program program)
-    (check-program program 'shader-link-error :link-status)
-    ;; We must place the call to `get-uniform-location' during link time, aka
-    ;; after `gl:link-program'.
-    (when (= -1 (setf gscale-location (gl:get-uniform-location program "gScale")))
-      (error 'uniform-location-error :uniform "gScale"))
-    (gl:validate-program program)
-    (check-program program 'invalid-shader-program :validate-status)
-    (gl:use-program program)))
+(defmethod compile-shaders ((vao-store store))
+  (with-slots (vertex-shader fragment-shader program uniforms) vao-store
+    (setf (program vao-store) (gl:create-program))
+    (when (zerop program)
+      (error "An error occured when creating program object."))
+    (let ((vs (add-shader program vertex-shader :vertex-shader))
+          (fs (add-shader program fragment-shader :fragment-shader)))
+      (gl:link-program program)
+      (check-program program 'shader-link-error :link-status)
+      (register-uniforms vao-store uniforms)
+      (gl:validate-program program)
+      (check-program program 'invalid-shader-program :validate-status)
+      (gl:use-program program)
+      (gl:delete-shader vs)
+      (gl:delete-shader fs))))
 
 ;;; Time Step
 
@@ -214,7 +287,6 @@
   (make-instance 'world-clock :duration duration))
 
 (defgeneric forward-time (clock))
-
 (defmethod forward-time ((clock world-clock))
   (with-slots (duration ticks frames) clock
     (when (local-time:timestamp>= (local-time:now) duration)
@@ -226,7 +298,6 @@
   clock)
 
 (defgeneric log-time (clock))
-
 (defmethod log-time ((clock world-clock))
   (when *world-stats*
     (with-slots (ticks frames) clock
@@ -241,10 +312,9 @@
   (glfw:init)
   (glfw:make-current (setf *g* (apply #'make-instance render-name options)))
   (prepare *g*)
-  (gl:viewport 0 0 900 600)
+  (gl:viewport 0 0 800 600)
   (gl:clear-color .09 .09 .09 0)
-  (create-vertex-buffer)
-  (compile-shaders))
+  (initialize-vaos *vaos*))
 
 (defun main ()
   (with-slots (user-quits) *g*
@@ -261,6 +331,5 @@
     (unwind-protect (progn (init render-name options)
                            (main))
       (shutdown)
-      (clean-buffer)
+      (free *vaos*)
       (format t "~%Killed window."))))
-

@@ -3,7 +3,7 @@
 (asdf:defsystem nohgl
   :author "zyd"
   :license "Public Domain"
-  :description "A library and testbed for OpenGL shenanigans."
+  :description "A personal library and testbed for OpenGL theatrics."
   :serial T
   :depends-on (:alexandria
                :serapeum
@@ -15,4 +15,6 @@
   :components ((:file "package")
                (:file "common")
                (:file "documentation")
-               (:file "hello-shader")))
+               (:module "renders"
+                :depends-on ("package" "common")
+                :components ((:file "hello-shader")))))
