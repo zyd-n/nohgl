@@ -312,7 +312,7 @@
   (glfw:init)
   (glfw:make-current (setf *g* (apply #'make-instance render-name options)))
   (prepare *g*)
-  (gl:viewport 0 0 800 600)
+  (gl:viewport 0 0 (glfw:width *g*) (glfw:height *g*))
   (gl:clear-color .09 .09 .09 0)
   (initialize-vaos *vaos*))
 
