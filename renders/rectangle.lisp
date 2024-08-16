@@ -1,12 +1,12 @@
-(in-package #:nohgl.hello-shader)
+(in-package #:nohgl.rect)
 
-(defun hello-shaders ()
-  (start 'hello-shaders :title "Hello, Shaders!" :width 900 :height 600))
+(defun start-rect ()
+  (start 'rect :title "Basic Rectangle" :width 900 :height 600)
+  (gl:polygon-mode :front-and-back :line))
 
 (defvao 'v1
   :vertex-shader "shaders/hello.vert"
   :fragment-shader "shaders/hello.frag"
-  ;; :uniforms '("gScale")
   :verts (gfill :float 0.5 0.5 0.0 0.5 -0.5 0.0 -0.5 -0.5 0.0 -0.5 0.5 0.0)
   :indices (gfill :unsigned-int 0 1 3 1 2 3))
 
@@ -15,7 +15,7 @@
   (gl:bind-vertex-array (vao (get-vao vao-store)))
   (%gl:draw-elements :triangles vertex-count :unsigned-int offset))
 
-(define-render hello-shaders ()
+(define-render rect ()
   (gl:clear :color-buffer)
   (draw-vertex 'v1 6)
   (glfw:swap-buffers *g*))
