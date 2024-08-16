@@ -1,7 +1,7 @@
-(in-package #:nohgl.2triangles)
+(in-package #:nohgl.two-triangles)
 
 (defun start-triangles ()
-  (start '2tr :title "2 Triangles" :width 900 :height 600))
+  (start 'two-triangles :title "nohgl - Two Triangles" :width 900 :height 600))
 
 (defvao 'v1
   :vertex-shader "shaders/hello.vert"
@@ -19,7 +19,7 @@
   (gl:bind-vertex-array (vao (get-vao vao-store)))
   (gl:draw-arrays :triangles offset vertex-count))
 
-(define-render 2tr ()
+(define-render two-triangles ()
   (gl:clear :color-buffer)
   (draw-vertex 'v1 6)
   (glfw:swap-buffers *g*))

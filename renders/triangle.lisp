@@ -1,7 +1,7 @@
 (in-package #:nohgl.triangle)
 
 (defun start-triangle ()
-  (start 'triangle :title "Triangle" :width 900 :height 600))
+  (start 'triangle :title "nohgl - A basic triangle" :width 900 :height 600))
 
 (defvao 'v1
   :vertex-shader "shaders/hello.vert"

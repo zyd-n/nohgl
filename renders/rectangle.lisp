@@ -1,7 +1,7 @@
-(in-package #:nohgl.rect)
+(in-package #:nohgl.rectangle)
 
-(defun start-rect ()
-  (start 'rect :title "Basic Rectangle" :width 900 :height 600)
+(defun start-rectangle ()
+  (start 'rectangle :title "nohgl - A basic rectangle" :width 900 :height 600)
   (gl:polygon-mode :front-and-back :line))
 
 (defvao 'v1
@@ -15,7 +15,7 @@
   (gl:bind-vertex-array (vao (get-vao vao-store)))
   (%gl:draw-elements :triangles vertex-count :unsigned-int offset))
 
-(define-render rect ()
+(define-render rectangle ()
   (gl:clear :color-buffer)
   (draw-vertex 'v1 6)
   (glfw:swap-buffers *g*))

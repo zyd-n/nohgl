@@ -17,4 +17,6 @@
                (:file "documentation")
                (:module "renders"
                 :depends-on ("package" "common")
-                :components ((:file "hello-shader")))))
+                :components ((:file "rectangle")
+                             (:file "triangle")
+                             (:file "two-triangles")))))
