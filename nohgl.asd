@@ -6,12 +6,11 @@
   :description "A personal library and testbed for OpenGL theatrics."
   :serial T
   :depends-on (:alexandria
-               :serapeum
                :glfw
                :cl-opengl
-               :closer-mop
                :local-time
-               :3d-math)
+               :3d-math
+               :livesupport)
   :components ((:file "package")
                (:file "common")
                (:file "documentation")

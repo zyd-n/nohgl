@@ -343,8 +343,7 @@
                 (process-input)
                 (draw *g*)
                 (update-vaos *vaos*)
-                (restart-case (swank::process-requests t)
-                  (continue () :report "Main Loop: Continue"))))))
+                (livesupport:update-repl-link)))))
 
 (defun start (render-name &rest options)
   (unless *g*
