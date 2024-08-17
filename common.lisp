@@ -195,7 +195,7 @@
     (setf (uniforms vao) ht)))
 
 (defun get-uniform (uniform-name vao-store)
-  (serapeum:@ (uniforms (get-vao vao-store)) uniform-name))
+  (gethash uniform-name (uniforms (get-vao vao-store))))
 
 (defun list-of-strings-p (list)
   (and (consp list) (every #'stringp list)))
