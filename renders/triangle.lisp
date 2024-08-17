@@ -1,5 +1,7 @@
 (in-package #:nohgl.triangle)
 
+;; This render draws a basic triangle.
+
 (defun start-triangle ()
   (start 'triangle :title "nohgl - A basic triangle" :width 900 :height 600))
 

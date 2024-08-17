@@ -1,5 +1,8 @@
 (in-package #:nohgl.two-triangles)
 
+;; This render draws two triangles using the same VAO but simply with more
+;; vertices (as opposed to two VAOs)
+
 (defun start-triangles ()
   (start 'two-triangles :title "nohgl - Two Triangles" :width 900 :height 600))
 
