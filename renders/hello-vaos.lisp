@@ -21,9 +21,9 @@
   :vertex-shader "shaders/hello.vert"
   :fragment-shader "shaders/v2.frag"
   :verts (gfill :float
-                -0.2 -1.0 +0.0
-                +0.2 -1.0 +0.0
-                +0.0 +1.0 +0.0))
+                -0.2 +1.0 +0.0
+                -0.6 -0.9 +0.0
+                +1.0 -1.0 +0.0))
 
 (defun draw-vertex (vao-store &optional (vertex-count 3) (offset 0))
   (gl:use-program (program (get-vao vao-store)))
