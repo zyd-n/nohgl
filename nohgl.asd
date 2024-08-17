@@ -19,5 +19,4 @@
                 :depends-on ("package" "common")
                 :components ((:file "rectangle")
                              (:file "triangle")
-                             (:file "two-triangles")
-                             (:file "bug")))))
+                             (:file "two-triangles")))))

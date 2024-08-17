@@ -166,23 +166,31 @@
   ((vao :accessor vao)
    (vbo :accessor vbo)
    (ebo :accessor ebo)
+   (name :initarg :name :accessor name)
    (program :accessor program)
    (uniforms :accessor uniforms)
    (indices :initarg :indices :initform nil :accessor indices)
    (verts :initarg :verts :accessor verts :initform (error 'vao-without-verts))
    (vertex-shader :initarg :vertex-shader :accessor vertex-shader :initform (error 'vao-without-vertex-shader))
-   (fragment-shader :initarg :fragment-shader :accessor fragment-shader :initform (error 'vao-without-fragment-shader))))
+   (fragment-shader :initarg :fragment-shader :accessor fragment-shader :initform (error 'vao-without-fragment-shader))
+   (update :initform nil :accessor update)))
 
 (defgeneric register-vao (vao name))
 (defmethod register-vao ((vao store) name)
   (setf (gethash name *vaos*) vao))
 
-(defgeneric update-vao (vao name))
-(defmethod update-vao ((vao store) name)
-  (compile-shaders vao)
-  (initialize-vao vao)
-  (free-vao (get-vao name))
-  (register-vao vao name))
+(defgeneric update-vao (vao))
+(defmethod update-vao ((vao store))
+  (with-slots (name) vao
+    (compile-shaders vao)
+    (initialize-vao vao)
+    (free-vao (get-vao name))
+    (register-vao vao name)))
+
+(defun update-vaos (vaos)
+  (loop :for vao being the hash-value of vaos
+        :do (let ((vao+ (update vao)))
+              (when vao+ (update-vao vao+)))))
 
 (defun get-vao (vao-name)
   (gethash vao-name *vaos*))
@@ -216,16 +224,16 @@
                          (vertex-shader (error 'vao-without-vertex-shader))
                          (fragment-shader (error 'vao-without-fragment-shader))
                          uniforms indices)
-
-  (let ((vao-store (make-instance 'store :verts verts
+  (let ((current-store (get-vao name))
+        (vao-store (make-instance 'store :verts verts
                                          :vertex-shader (read-file vertex-shader)
                                          :fragment-shader (read-file fragment-shader)
-                                         :indices indices)))
-    (if (and (get-vao name) *g*)
-        (progn (initialize-uniforms vao-store uniforms)
-               (update-vao vao-store name))
-        (progn (register-vao vao-store name)
-               (initialize-uniforms vao-store uniforms)))))
+                                         :indices indices
+                                         :name name)))
+    (initialize-uniforms vao-store uniforms)
+    (if (and current-store *g*)
+        (setf (update current-store) vao-store)
+        (register-vao vao-store name))))
 
 
 (defmethod initialize-vao ((vao-store store))
@@ -334,6 +342,7 @@
             :do (forward-time clock)
                 (process-input)
                 (draw *g*)
+                (update-vaos *vaos*)
                 (restart-case (swank::process-requests t)
                   (continue () :report "Main Loop: Continue"))))))
 
