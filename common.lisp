@@ -174,15 +174,20 @@
    (fragment-shader :initarg :fragment-shader :accessor fragment-shader :initform (error 'vao-without-fragment-shader))))
 
 (defgeneric register-vao (vao name))
-
 (defmethod register-vao ((vao store) name)
   (setf (gethash name *vaos*) vao))
+
+(defgeneric update-vao (vao name))
+(defmethod update-vao ((vao store) name)
+  (compile-shaders vao)
+  (initialize-vao vao)
+  (free-vao (get-vao name))
+  (register-vao vao name))
 
 (defun get-vao (vao-name)
   (gethash vao-name *vaos*))
 
 (defgeneric register-uniforms (vao uniforms))
-
 (defmethod register-uniforms ((vao store) uniforms)
   (loop for uniform being the hash-key of uniforms
         do (let ((uniform-location (gl:get-uniform-location (program vao) uniform)))
@@ -191,7 +196,6 @@
                  (setf (gethash uniform (uniforms vao)) uniform-location)))))
 
 (defgeneric initialize-uniforms (vao uniforms))
-
 (defmethod initialize-uniforms ((vao store) uniforms)
   (let ((ht (make-hash-table :test 'equal)))
     (dolist (uniform uniforms)
@@ -217,8 +221,11 @@
                                          :vertex-shader (read-file vertex-shader)
                                          :fragment-shader (read-file fragment-shader)
                                          :indices indices)))
-    (register-vao vao-store name)
-    (initialize-uniforms vao-store uniforms)))
+    (if (and (get-vao name) *g*)
+        (progn (initialize-uniforms vao-store uniforms)
+               (update-vao vao-store name))
+        (progn (register-vao vao-store name)
+               (initialize-uniforms vao-store uniforms)))))
 
 
 (defmethod initialize-vao ((vao-store store))
