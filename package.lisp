@@ -10,6 +10,8 @@
    #:define-render
    #:gfill
    #:quit
+   #:compile-shaders
+   #:initialize-vao
    ;; vao
    #:defvao
    #:vao
