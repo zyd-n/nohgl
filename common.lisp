@@ -93,11 +93,15 @@
 
 (defun free (vaos)
   (loop :for vao-store being the hash-value of vaos
-        :do (with-slots (vao vbo ebo program) vao-store
-              (gl:delete-vertex-arrays (list vao))
-              (gl:delete-buffers (list vbo))
-              (gl:delete-buffers (list ebo))
-              (gl:delete-program program))))
+        :do (free-vao vao-store)))
+
+(defun free-vao (vao-store)
+  (with-slots (vao vbo ebo program) vao-store
+    (let ((vaos (list vao))
+          (buffers (list vbo ebo)))
+      (gl:delete-vertex-arrays vaos)
+      (gl:delete-buffers buffers)
+      (gl:delete-program program))))
 
 ;;; Utility
 
