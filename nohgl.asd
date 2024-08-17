@@ -20,4 +20,4 @@
                 :components ((:file "rectangle")
                              (:file "triangle")
                              (:file "two-triangles")
-                             (:file "bugs")))))
+                             (:file "bug")))))
