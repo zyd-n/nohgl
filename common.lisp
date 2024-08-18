@@ -59,7 +59,7 @@
   `(defmethod prepare ((render ,name)
                        &key ,@(loop for b in bindings
                                     collect `((,(binding-initarg b) ,(binding-name b)) ,(binding-initform b)))
-                            &allow-other-keys)
+                       &allow-other-keys)
      (setf ,@(loop for b in bindings
                    collect `(,(binding-accessor b) render)
                    collect (binding-name b)))))
@@ -105,13 +105,16 @@
 
 ;;; Utility
 
-(defun read-file (file)
-  (let ((src (pathname file)))
-    (with-output-to-string (output)
-      (with-open-file (stream src)
-        (loop :for line := (read-line stream nil)
-              :while line
-              :do (format output "~a~%" line))))))
+(defgeneric read-shader (source))
+
+(defmethod read-shader ((source string)) source)
+
+(defmethod read-shader ((source pathname))
+  (with-output-to-string (output)
+    (with-open-file (stream source)
+      (loop :for line := (read-line stream nil)
+            :while line
+            :do (format output "~a~%" line)))))
 
 (defun gfill (type &rest args)
   (let ((arr (gl:alloc-gl-array type (length args))))
@@ -226,8 +229,8 @@
                          uniforms indices)
   (let ((current-store (get-vao name))
         (vao-store (make-instance 'store :verts verts
-                                         :vertex-shader (read-file vertex-shader)
-                                         :fragment-shader (read-file fragment-shader)
+                                         :vertex-shader (read-shader vertex-shader)
+                                         :fragment-shader (read-shader fragment-shader)
                                          :indices indices
                                          :name name)))
     (initialize-uniforms vao-store uniforms)
