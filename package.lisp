@@ -25,7 +25,10 @@
    #:vertex-shader
    #:fragment-shader
    #:get-vao
-   #:format-vertex-attribs))
+   #:format-vertex-attribs
+   ;; util
+   #:gfill
+   #:debug-with-time))
 
 (defpackage #:nohgl.triangle
   (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
