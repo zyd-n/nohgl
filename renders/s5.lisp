@@ -8,28 +8,8 @@
   (start 's5 :title "nohgl - s5" :width 900 :height 600))
 
 (defvao 'v1
-  :vertex-shader
-  "#version 330 core
-
-   layout (location = 0) in vec3 position;
-   layout (location = 1) in vec3 color;
-   out vec3 vertexColor;
-
-   void main()
-   {
-     gl_Position = vec4(position, 1.0);
-     vertexColor = color;
-   }"
-  :fragment-shader
-  "#version 330 core
-
-   out vec4 FragColor;
-   in vec3 vertexColor;
-
-   void main()
-   {
-     FragColor = vec4(vertexColor, 1.0);
-   }"
+  :vertex-shader (pathname "shaders/s5.vert")
+  :fragment-shader (pathname "shaders/s5.frag")
   :verts (gfill :float
                 ;;   <pos>          <color>
                 +0.0 +1.0 +0.0  +1.0 +0.0 +0.0
