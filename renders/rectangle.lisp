@@ -7,8 +7,8 @@
   (start 'rectangle :title "nohgl - A basic rectangle" :width 900 :height 600))
 
 (defvao 'v1
-  :vertex-shader "shaders/hello.vert"
-  :fragment-shader "shaders/hello.frag"
+  :vertex-shader (pathname "shaders/hello.vert")
+  :fragment-shader (pathname "shaders/hello.frag")
   :verts (gfill :float
                 +0.5 +0.5 +0.0
                 +0.5 -0.5 +0.0

@@ -34,8 +34,8 @@ void main()
                 +1.0 +1.0 +0.0))
 
 (defvao 'v2
-  :vertex-shader "shaders/hello.vert"
-  :fragment-shader "shaders/v2.frag"
+  :vertex-shader (pathname "shaders/hello.vert")
+  :fragment-shader (pathname "shaders/v2.frag")
   :verts (gfill :float
                 -0.2 +1.0 +0.0
                 -0.6 -0.9 +0.0
