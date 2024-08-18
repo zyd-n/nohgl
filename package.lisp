@@ -6,7 +6,9 @@
   (:export
    ;; Main
    #:*g*
+   #:store
    #:start
+   #:init-options
    #:define-render
    #:gfill
    #:quit

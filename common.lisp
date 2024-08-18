@@ -333,23 +333,32 @@
 
 ;;; Init
 
+(defun init-defaults ()
+  (gl:viewport 0 0 (glfw:width *g*) (glfw:height *g*))
+  (gl:clear-color .09 .09 .09 0))
+
+(defgeneric init-options ())
+(defmethod init-options ()
+  (init-defaults))
+
 (defun init (render-name options)
   (glfw:init)
   (glfw:make-current (setf *g* (apply #'make-instance render-name options)))
   (prepare *g*)
-  (gl:viewport 0 0 (glfw:width *g*) (glfw:height *g*))
-  (gl:clear-color .09 .09 .09 0)
+  (init-options)
   (initialize-vaos *vaos*))
 
 (defun main ()
   (with-slots (user-quits) *g*
     (let ((clock (time-by (nsec 1))))
       (loop :until user-quits
-            :do (forward-time clock)
-                (process-input)
-                (draw *g*)
-                (update-vaos *vaos*)
-                (livesupport:update-repl-link)))))
+            :do (livesupport:continuable
+                  (forward-time clock)
+                  (process-input)
+                  (draw *g*)
+                  (glfw:swap-buffers *g*)
+                  (update-vaos *vaos*)
+                  (livesupport:update-repl-link))))))
 
 (defun start (render-name &rest options)
   (unless *g*
