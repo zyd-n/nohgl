@@ -19,4 +19,5 @@
                 :components ((:file "rectangle")
                              (:file "triangle")
                              (:file "two-triangles")
-                             (:file "hello-vaos")))))
+                             (:file "hello-vaos")
+                             (:file "s5")))))
