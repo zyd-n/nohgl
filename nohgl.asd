@@ -13,7 +13,6 @@
                :livesupport)
   :components ((:file "package")
                (:file "common")
-               (:file "documentation")
                (:module "renders"
                 :depends-on ("package" "common")
                 :components ((:file "rectangle")

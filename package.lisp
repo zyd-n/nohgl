@@ -10,7 +10,6 @@
    #:start
    #:init-options
    #:define-render
-   #:gfill
    #:quit
    #:compile-shaders
    #:initialize-vao
