@@ -22,7 +22,8 @@
    #:program
    #:vertex-shader
    #:fragment-shader
-   #:get-vao))
+   #:get-vao
+   #:format-vertex-attribs))
 
 (defpackage #:nohgl.triangle
   (:use #:cl #:org.shirakumo.fraf.math #:nohgl)

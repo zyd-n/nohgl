@@ -238,6 +238,10 @@
         (setf (update current-store) vao-store)
         (register-vao vao-store name))))
 
+(defgeneric format-vertex-attribs ())
+(defmethod format-vertex-attribs ()
+  (gl:vertex-attrib-pointer 0 3 :float :false (* 3 (cffi:foreign-type-size :float)) 0)
+  (gl:enable-vertex-attrib-array 0))
 
 (defmethod initialize-vao ((vao-store store))
   (with-slots (vao vbo ebo verts indices) vao-store
@@ -249,8 +253,7 @@
     (gl:buffer-data :array-buffer :static-draw verts)
     (gl:bind-buffer :element-array-buffer ebo)
     (when indices (gl:buffer-data :element-array-buffer :static-draw indices))
-    (gl:vertex-attrib-pointer 0 3 :float :false (* 3 (cffi:foreign-type-size :float)) 0)
-    (gl:enable-vertex-attrib-array 0)
+    (format-vertex-attribs)
     ;; unbind
     (gl:bind-buffer :array-buffer 0)
     (gl:bind-vertex-array 0)))
