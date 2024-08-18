@@ -19,4 +19,5 @@
                              (:file "triangle")
                              (:file "two-triangles")
                              (:file "hello-vaos")
-                             (:file "s5")))))
+                             (:file "rgb-vertices")
+                             (:file "xyz-as-color")))))

@@ -49,7 +49,12 @@
   (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
   (:export #:start-vaos))
 
-(defpackage #:nohgl.s5
+(defpackage #:nohgl.rgb-vertices
   (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
   (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-s5))
+  (:export #:start-rgb))
+
+(defpackage #:nohgl.xyz-as-color
+  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
+  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
+  (:export #:start-xyz))
