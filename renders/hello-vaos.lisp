@@ -7,8 +7,24 @@
   (start 'hello-vaos :title "nohgl - Hello VAOs" :width 900 :height 600))
 
 (defvao 'v1
-  :vertex-shader "shaders/hello.vert"
-  :fragment-shader "shaders/hello.frag"
+  :vertex-shader "#version 330 core
+
+layout (location = 0) in vec3 Position;
+
+void main()
+{
+  gl_Position = vec4(Position.x, Position.y, Position.z, 1.0);
+}
+"
+  :fragment-shader "#version 330 core
+
+out vec4 FragColor;
+
+void main()
+{
+  FragColor = vec4(1.0f, 0.0f, 0.0f, 0.0f);
+}
+"
   :verts (gfill :float
                 -1.0 +1.0 +0.0
                 -1.0 -1.0 +0.0
