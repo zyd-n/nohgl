@@ -347,7 +347,8 @@
 
 (defun start (render-name &rest options)
   (unless *g*
-    (unwind-protect (progn (init render-name options)
+    (unwind-protect (progn (livesupport:setup-lisp-repl)
+                           (init render-name options)
                            (main))
       (shutdown)
       (free *vaos*)
