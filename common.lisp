@@ -214,7 +214,8 @@
 (defun defvao (name &key (verts (error 'vao-without-verts))
                          (vertex-shader (error 'vao-without-vertex-shader))
                          (fragment-shader (error 'vao-without-fragment-shader))
-                         uniforms indices)
+                         uniforms
+                         indices)
   (let ((current-store (get-vao name))
         (vao-store (make-instance 'store :verts verts
                                          :vertex-shader (read-shader vertex-shader)
@@ -232,10 +233,10 @@
   (gl:enable-vertex-attrib-array 0))
 
 (defmethod initialize-vao ((vao-store store))
-  (with-slots (vao vbo ebo verts indices) vao-store
-    (setf (vao vao-store) (gl:gen-vertex-array)
-          (vbo vao-store) (gl:gen-buffer)
-          (ebo vao-store) (gl:gen-buffer))
+  (with-accessors ((vao vao) (vbo vbo) (ebo ebo) (verts verts) (indices indices)) vao-store
+    (setf vao (gl:gen-vertex-array)
+          vbo (gl:gen-buffer)
+          ebo (gl:gen-buffer))
     (gl:bind-vertex-array vao)
     (gl:bind-buffer :array-buffer vbo)
     (gl:buffer-data :array-buffer :static-draw verts)
@@ -247,11 +248,9 @@
     (gl:bind-vertex-array 0)))
 
 (defun initialize-vaos (vaos)
-  (maphash (lambda (k v)
-             (declare (ignore k))
-             (compile-shaders v)
-             (initialize-vao v))
-           vaos))
+  (loop for vao being the hash-value of vaos
+        do (compile-shaders vao)
+           (initialize-vao vao)))
 
 (defun add-shader (program src type)
   (let ((shader (gl:create-shader type)))
@@ -275,16 +274,16 @@
     (setf (program vao-store) (gl:create-program))
     (when (zerop program)
       (error "An error occured when creating program object."))
-    (let ((vs (add-shader program vertex-shader :vertex-shader))
-          (fs (add-shader program fragment-shader :fragment-shader)))
+    (let ((vertex-shader (add-shader program vertex-shader :vertex-shader))
+          (fragment-shader (add-shader program fragment-shader :fragment-shader)))
       (gl:link-program program)
       (check-program program 'shader-link-error :link-status)
       (register-uniforms vao-store uniforms)
       (gl:validate-program program)
       (check-program program 'invalid-shader-program :validate-status)
       (gl:use-program program)
-      (gl:delete-shader vs)
-      (gl:delete-shader fs))))
+      (gl:delete-shader vertex-shader)
+      (gl:delete-shader fragment-shader))))
 
 ;;; Time Step
 
