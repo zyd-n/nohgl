@@ -57,10 +57,16 @@ void main()
   (gl:bind-vertex-array (vao (get-vao vao-store)))
   (gl:draw-arrays :triangles offset vertex-count))
 
+(defmacro with-uniform-location (uniform-name vao &body body)
+  `(let ((uniform-location (gl:get-uniform-location (program (get-vao ,vao)) ,uniform-name)))
+     (progn (gl:use-program (program (get-vao ,vao)))
+            ,@body)))
+
+(defun offset-by (n uniform-location)
+  (%gl:uniform-1f uniform-location n))
+
 (define-render rgb ()
-  (let* ((v (get-vao 'v1))
-         (uniform-location (gl:get-uniform-location (program v) "xoffset")))
-    (gl:clear :color-buffer)
-    (gl:use-program (program v))
-    (%gl:uniform-1f uniform-location 1.0)
-    (draw-vertex 'v1 3)))
+  (gl:clear :color-buffer)
+  (draw-vertex 'v1 3)
+  (with-uniform-location "xoffset" 'v1
+    (offset-by 0.0 uniform-location)))
