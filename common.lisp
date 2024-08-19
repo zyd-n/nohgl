@@ -17,62 +17,50 @@
 ;;; Bindings
 
 (defclass binding ()
-  ((name :initarg :name :accessor binding-name)
-   (prefix :initarg :prefix :accessor binding-prefix)
-   (package :initarg :package :accessor binding-package)
-   (initform :initarg :initform :accessor binding-initform)
-   (initarg :initarg :initarg :accessor binding-initarg)
-   (accessor :initarg :accessor :accessor binding-accessor)))
+  ((name :initarg :name :accessor name)
+   (initform :initarg :initform :accessor initform)
+   (initarg :initarg :initarg :accessor initarg)
+   (accessor :initarg :accessor :accessor accessor)))
 
-(defun make-accessor (name prefix package)
-  (let ((symbol (alexandria:symbolicate prefix '#:- name)))
-    (if package
-        (intern (symbol-name symbol) (symbol-package prefix))
-        symbol)))
-
-(defun make-binding (name &key (prefix nil)
-                               (package nil)
-                               (initform nil)
+(defun make-binding (name &key (initform nil)
                                (initarg (alexandria:make-keyword name))
-                               (accessor (make-accessor name prefix package)))
+                               (accessor name))
   (make-instance 'binding :name name
-                          :prefix prefix
-                          :package package
                           :initform initform
                           :initarg initarg
                           :accessor accessor))
 
-(defun parse-bindings (prefix binding-forms)
+(defun parse-bindings (binding-forms)
   (loop :for (name value) in binding-forms
-        :collect (make-binding name :prefix prefix :initform value)))
+        :collect (make-binding name :initform value)))
 
 ;;; Render
 
 (defun +defclass (name bindings)
   `(defclass ,name (g)
      (,@(loop :for binding in bindings
-              :collect `(,(binding-name binding)
-                         :initarg ,(binding-initarg binding)
-                         :accessor ,(binding-accessor binding))))))
+              :collect `(,(name binding)
+                         :initarg ,(initarg binding)
+                         :accessor ,(accessor binding))))))
 
 (defun +prepare (name bindings)
   `(defmethod prepare ((render ,name)
                        &key ,@(loop for b in bindings
-                                    collect `((,(binding-initarg b) ,(binding-name b)) ,(binding-initform b)))
+                                    collect `((,(initarg b) ,(name b)) ,(initform b)))
                        &allow-other-keys)
      (setf ,@(loop for b in bindings
-                   collect `(,(binding-accessor b) render)
-                   collect (binding-name b)))))
+                   collect `(,(accessor b) render)
+                   collect (name b)))))
 
 (defun +draw (name bindings body)
   `(defmethod draw ((render ,name))
      (with-accessors (,@(loop for b in bindings
-                              collect `(,(binding-name b) ,(binding-accessor b))))
+                              collect `(,(name b) ,(accessor b))))
          render
        ,@body)))
 
 (defmacro define-render (name locals &body body)
-  (let ((bindings (parse-bindings name locals)))
+  (let ((bindings (parse-bindings locals)))
     `(progn ,(+defclass name bindings)
             ,(+prepare name bindings)
             ,(+draw name bindings body)
