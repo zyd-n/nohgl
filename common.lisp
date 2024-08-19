@@ -110,6 +110,12 @@
       (setf (gl:glaref arr i)
             (elt args i)))))
 
+(defmacro with-uniform-location (uniform-name vao &body body)
+  `(let ((,(intern (symbol-name 'uniform-location) *package*)
+           (gl:get-uniform-location (program (get-vao ,vao)) ,uniform-name)))
+     (progn (gl:use-program (program (get-vao ,vao)))
+            ,@body)))
+
 ;;; Input
 
 (defmethod glfw:key-changed ((window g) key scan-code action modifiers)
