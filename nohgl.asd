@@ -10,14 +10,26 @@
                :cl-opengl
                :local-time
                :3d-math
-               :livesupport)
-  :components ((:file "package")
-               (:file "common")
+               :livesupport
+               :pngload
+               :static-vectors)
+  :components ((:module "source"
+                :components ((:file "package")
+                             (:file "util")
+                             (:file "conditions")
+                             (:file "context")
+                             (:file "input")
+                             (:file "time")
+                             (:file "render")
+                             (:file "shader")
+                             (:file "texture")
+                             (:file "init")))
                (:module "renders"
-                :depends-on ("package" "common")
+                :depends-on ("source")
                 :components ((:file "rectangle")
                              (:file "triangle")
                              (:file "two-triangles")
                              (:file "hello-vaos")
                              (:file "rgb-vertices")
-                             (:file "xyz-as-color")))))
+                             (:file "xyz-as-color")
+                             (:file "hello-texture")))))

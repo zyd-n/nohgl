@@ -4,7 +4,7 @@
   (:use #:cl #:org.shirakumo.fraf.math)
   (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
   (:export
-   ;; Main
+   ;; main
    #:*g*
    #:store
    #:start
@@ -25,8 +25,14 @@
    #:fragment-shader
    #:get-vao
    #:format-vertex-attribs
+   ;; textures
+   #:texture
+   #:width
+   #:height
+   #:data
    ;; util
    #:gfill
+   #:with-uniform-location
    #:debug-with-time))
 
 (defpackage #:nohgl.triangle
@@ -58,3 +64,8 @@
   (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
   (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
   (:export #:start-xyz))
+
+(defpackage #:nohgl.hello-texture
+  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
+  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
+  (:export #:start-texture))
