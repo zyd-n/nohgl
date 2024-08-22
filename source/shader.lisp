@@ -2,32 +2,34 @@
 
 (defvar *vaos* (make-hash-table :test 'equal))
 
+(defparameter *shader-dir* (format nil "~Ashaders/" *main-dir*))
+
+(defun shader-location (s)
+  (pathname (format nil "~a~a" *shader-dir* s)))
+
 (defclass store ()
   ((vao :accessor vao)
    (vbo :accessor vbo)
    (ebo :accessor ebo)
    (name :initarg :name :accessor name)
    (program :accessor program)
-   (uniforms :accessor uniforms)
+   (uniforms :initarg :uniforms :accessor uniforms)
    (indices :initarg :indices :initform nil :accessor indices)
    (verts :initarg :verts :accessor verts :initform (error 'vao-without-verts))
    (vertex-shader :initarg :vertex-shader :accessor vertex-shader :initform (error 'vao-without-vertex-shader))
    (fragment-shader :initarg :fragment-shader :accessor fragment-shader :initform (error 'vao-without-fragment-shader))
    (update :initform nil :accessor update)
-   (texture :initarg :texture :initform nil :accessor texture)))
+   (textures :initarg :texture :initform nil :accessor textures)))
 
-(defgeneric read-shader (source))
 (defgeneric register-vao (vao name))
 (defgeneric update-vao (vao))
 (defgeneric register-uniforms (vao uniforms))
 (defgeneric initialize-uniforms (vao uniforms))
 (defgeneric format-vertex-attribs ())
 
-(defmethod read-shader ((source string)) source)
-
-(defmethod read-shader ((source pathname))
+(defun shader-s (source)
   (with-output-to-string (output)
-    (with-open-file (stream source)
+    (with-open-file (stream (shader-location source))
       (loop :for line := (read-line stream nil)
             :while line
             :do (format output "~a~%" line)))))
@@ -84,49 +86,57 @@
 (deftype list-of-strings ()
   `(satisfies list-of-strings-p))
 
+(defun maybe-update-store (old new)
+  (when (and old *g*)
+    (setf (update old) new)))
+
+;; TODO: Add new type that checks if textures is a list of lists that are
+;; three pair values: (source texture-name texture-format)
+
 (declaim (ftype (function (symbol &key
                                   (:verts gl:gl-array)
-                                  (:vertex-shader (or string pathname))
-                                  (:fragment-shader (or string pathname))
+                                  (:vertex-shader string)
+                                  (:fragment-shader string)
                                   (:uniforms list-of-strings)
                                   (:indices gl:gl-array)
-                                  (:texture pathname)))
+                                  (:textures list)))
                 defvao))
 (defun defvao (name &key (verts (error 'vao-without-verts))
                          (vertex-shader (error 'vao-without-vertex-shader))
                          (fragment-shader (error 'vao-without-fragment-shader))
                          uniforms
                          indices
-                         texture)
+                         textures)
   (let ((current-store (get-vao name))
-        (vao-store (make-instance 'store :verts verts
-                                         :vertex-shader (read-shader vertex-shader)
-                                         :fragment-shader (read-shader fragment-shader)
+        (new-store (make-instance 'store :verts verts
+                                         :vertex-shader vertex-shader
+                                         :fragment-shader fragment-shader
                                          :indices indices
-                                         :name name
-                                         :texture (when texture (make-texture texture)))))
-    (initialize-uniforms vao-store uniforms)
-    (if (and current-store *g*)
-        (setf (update current-store) vao-store)
-        (register-vao vao-store name))))
+                                         :name name)))
+    (initialize-uniforms new-store uniforms)
+    (initialize-textures new-store textures)
+    (unless (maybe-update-store current-store new-store)
+      (register-vao new-store name))))
 
-
-(defmethod format-vertex-attribs ()
+(defun default-format ()
   (gl:vertex-attrib-pointer 0 3 :float :false (* 3 (cffi:foreign-type-size :float)) 0)
   (gl:enable-vertex-attrib-array 0))
 
+(defmethod format-vertex-attribs ()
+  (default-format))
+
 (defmethod initialize-vao ((vao-store store))
-  (with-accessors ((vao vao) (vbo vbo) (ebo ebo) (verts verts) (indices indices) (texture texture)) vao-store
+  (with-accessors ((vao vao) (vbo vbo) (ebo ebo) (verts verts) (indices indices)) vao-store
     (setf vao (gl:gen-vertex-array)
           vbo (gl:gen-buffer)
           ebo (gl:gen-buffer))
-    (when texture (setf texture (generate-texture texture)))
     (gl:bind-vertex-array vao)
     (gl:bind-buffer :array-buffer vbo)
     (gl:buffer-data :array-buffer :static-draw verts)
     (gl:bind-buffer :element-array-buffer ebo)
     (when indices (gl:buffer-data :element-array-buffer :static-draw indices))
     (format-vertex-attribs)
+    (generate-textures vao-store)
     ;; unbind
     (gl:bind-buffer :array-buffer 0)
     (gl:bind-vertex-array 0)))

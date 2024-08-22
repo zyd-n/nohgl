@@ -1,30 +1,55 @@
 (in-package #:nohgl)
 
+(defvar *texture-formats* (make-hash-table :test 'equal))
+
+(defparameter *asset-dir* (format nil "~Aassets/" *main-dir*))
+
 (defclass texture ()
-  ((data :initarg :data :initform nil :accessor data)
+  ((name :initarg :name :initform nil :accessor name)
+   (data :initarg :data :initform nil :accessor data)
    (width :initarg :width :initform nil :accessor width)
-   (height :initarg :height :initform nil :accessor height)))
+   (height :initarg :height :initform nil :accessor height)
+   (format :initarg :format :initform nil :accessor texture-format)
+   (id :initform nil :accessor id)))
 
-;; this works:
-;; (pngload:with-png-in-static-vector (pn #p"lain.png" :flip-y t)
-;;   (pngload:data pn))
+(defun asset (filename)
+  (pathname (format nil "~a~a" *asset-dir* filename)))
 
-(defgeneric make-texture (png))
-(defmethod make-texture ((png pathname))
-  (pngload:with-png-in-static-vector (png-source png :flip-y t)
-    (make-instance 'texture :width (pngload:width png-source)
-                            :height (pngload:height png-source)
-                            :data (static-vectors:static-vector-pointer (pngload:data png-source)))))
+(defun get-texture-format (name)
+  (gethash name *texture-formats*))
 
-(defgeneric generate-texture (texture))
-(defmethod generate-texture ((texture texture))
-  (with-slots (width height data) texture
-    (let ((texture-id (gl:gen-texture)))
-      (gl:bind-texture :texture-2d texture-id)
-      (gl:tex-parameter :texture-2d :texture-wrap-s :repeat)
-      (gl:tex-parameter :texture-2d :texture-wrap-t :repeat)
-      (gl:tex-parameter :texture-2d :texture-min-filter :linear-mipmap-linear)
-      (gl:tex-parameter :texture-2d :texture-mag-filter :linear)
-      (gl:tex-image-2d :texture-2d 0 :rgb width height 0 :rgba :unsigned-byte data)
-      (gl:generate-mipmap :texture-2d)
-      texture-id)))
+(defun add-texture-format (name format)
+  (setf (gethash name *texture-formats*) format))
+
+(defmacro define-texture-format (name slots &body body)
+  `(add-texture-format
+    ',name
+    (lambda (texture)
+      (with-slots ,slots texture
+        ,@body))))
+
+(defun register-texture (name source format)
+  (let ((png (pngload:load-file (asset source) :flip-y t :flatten t :static-vector t)))
+    (make-instance 'texture  :name name
+                             :width (pngload:width png)
+                             :height (pngload:height png)
+                             :data (pngload:data png)
+                             :format (get-texture-format format))))
+
+(defgeneric initialize-textures (vao textures))
+(defmethod initialize-textures ((vao store) textures)
+  (loop for (texture-source name format) in textures
+        do (push (register-texture name texture-source format)
+                 (textures vao))))
+
+(defgeneric generate-textures (vao))
+(defmethod generate-textures ((vao store))
+  (loop for texture in (textures vao)
+        do (with-accessors ((id id)) texture
+             (setf id (funcall (texture-format texture) texture)))))
+
+(defun get-texture (name vao)
+  (id (find-if (lambda (texture)
+                 (string= (symbol-name name)
+                          (symbol-name (name texture))))
+               (textures (get-vao vao)))))

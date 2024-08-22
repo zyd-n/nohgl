@@ -25,47 +25,22 @@
    #:fragment-shader
    #:get-vao
    #:format-vertex-attribs
+   #:default-format
    ;; textures
    #:texture
    #:width
    #:height
    #:data
+   #:define-texture-format
+   #:get-texture
+   #:asset
+   #:*asset-dir*
+   #:*texture-formats*
    ;; util
    #:gfill
    #:with-uniform-location
-   #:debug-with-time))
+   #:debug-with-time
+   #:shader-s
+   #:*shader-dir*))
 
-(defpackage #:nohgl.triangle
-  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
-  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-triangle))
 
-(defpackage #:nohgl.rectangle
-  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
-  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-rectangle))
-
-(defpackage #:nohgl.two-triangles
-  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
-  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-triangles))
-
-(defpackage #:nohgl.hello-vaos
-  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
-  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-vaos))
-
-(defpackage #:nohgl.rgb-vertices
-  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
-  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-rgb))
-
-(defpackage #:nohgl.xyz-as-color
-  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
-  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-xyz))
-
-(defpackage #:nohgl.hello-texture
-  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
-  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-texture))
