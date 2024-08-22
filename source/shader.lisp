@@ -61,8 +61,10 @@
       (gl:delete-program program))))
 
 (defun free (vaos)
-  (loop :for vao-store being the hash-value of vaos
-        :do (free-vao vao-store)))
+  (maphash (lambda (k v)
+             (free-vao v)
+             (remhash k vaos))
+           vaos))
 
 (defmethod register-uniforms ((vao store) uniforms)
   (loop for uniform being the hash-key of uniforms
