@@ -1,6 +1,7 @@
 (in-package #:nohgl)
 
 (defconstant SIZE-OF-FLOAT (cffi:foreign-type-size :float))
+(defparameter *main-dir* (format nil "~A" (asdf:system-source-directory (asdf:find-system "nohgl"))))
 
 (defun gfill (type &rest args)
   (let ((arr (gl:alloc-gl-array type (length args))))

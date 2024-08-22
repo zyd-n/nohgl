@@ -1,3 +1,8 @@
+(defpackage #:nohgl.hello-vaos
+  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
+  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
+  (:export #:start-vaos))
+
 (in-package #:nohgl.hello-vaos)
 
 ;; This render draws two different VAO objects, along with a different
@@ -34,8 +39,8 @@ void main()
                 +1.0 +1.0 +0.0))
 
 (defvao 'v2
-  :vertex-shader (pathname "shaders/hello.vert")
-  :fragment-shader (pathname "shaders/v2.frag")
+  :vertex-shader (shader-s "hello.vert")
+  :fragment-shader (shader-s "v2.frag")
   :verts (gfill :float
                 -0.2 +1.0 +0.0
                 -0.6 -0.9 +0.0

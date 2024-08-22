@@ -1,3 +1,8 @@
+(defpackage #:nohgl.rgb-vertices
+  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
+  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
+  (:export #:start-rgb))
+
 (in-package #:nohgl.rgb-vertices)
 
 (defmethod init-options ()

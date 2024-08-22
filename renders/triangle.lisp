@@ -1,3 +1,8 @@
+(defpackage #:nohgl.triangle
+  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
+  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
+  (:export #:start-triangle))
+
 (in-package #:nohgl.triangle)
 
 ;; This render draws a basic triangle.
@@ -6,8 +11,8 @@
   (start 'triangle :title "nohgl - A basic triangle" :width 900 :height 600))
 
 (defvao 'v1
-  :vertex-shader (pathname "shaders/hello.vert")
-  :fragment-shader (pathname "shaders/hello.frag")
+  :vertex-shader (shader-s "hello.vert")
+  :fragment-shader (shader-s "hello.frag")
   :verts (gfill :float
                 +0.0 +1.0 +0.0
                 -1.0 -1.0 +0.0

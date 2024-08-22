@@ -1,3 +1,8 @@
+(defpackage #:nohgl.xyz-as-color
+  (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
+  (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
+  (:export #:start-xyz))
+
 (in-package #:nohgl.xyz-as-color)
 
 (defmethod init-options ()
