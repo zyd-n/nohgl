@@ -33,11 +33,12 @@
                   (update-vaos *vaos*)
                   (livesupport:update-repl-link))))))
 
+;; TODO: Add function to manually free resources
 (defun start (render-name &rest options)
   (unless *g*
-    (unwind-protect (progn (livesupport:setup-lisp-repl)
-                           (init render-name options)
-                           (main))
+    (unwind-protect
+         (progn (livesupport:setup-lisp-repl)
+                (init render-name options)
+                (main))
       (shutdown)
-      (free *vaos*)
       (format t "~%Killed window."))))
