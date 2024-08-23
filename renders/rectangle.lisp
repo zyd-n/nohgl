@@ -1,15 +1,19 @@
 (defpackage #:nohgl.rectangle
   (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
   (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-rectangle))
+  (:export #:start-render))
 
 (in-package #:nohgl.rectangle)
 
 ;; This render draws two triangles (that form a rectangle) using indices to
 ;; control which set of vertices are drawn.
 
-(defun start-rectangle ()
-  (start 'rectangle :title "nohgl - A basic rectangle" :width 900 :height 600))
+(defmethod init-options ()
+  (gl:viewport 0 0 900 600)
+  (gl:clear-color .09 .09 .09 0))
+
+(defmethod format-vertex-attribs ()
+  (default-format))
 
 (defvao 'v1
   :vertex-shader (shader-s "hello.vert")
@@ -28,5 +32,7 @@
 
 (define-render rectangle ()
   (gl:clear :color-buffer)
-  (draw-vertex 'v1 6)
-  (glfw:swap-buffers *g*))
+  (draw-vertex 'v1 6))
+
+(defun start-render ()
+  (start 'rectangle :title "nohgl - A basic rectangle" :width 900 :height 600))

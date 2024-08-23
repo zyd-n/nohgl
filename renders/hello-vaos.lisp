@@ -1,15 +1,19 @@
 (defpackage #:nohgl.hello-vaos
   (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
   (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-vaos))
+  (:export #:start-render))
 
 (in-package #:nohgl.hello-vaos)
 
 ;; This render draws two different VAO objects, along with a different
 ;; fragment shader, to the same context.
 
-(defun start-vaos ()
-  (start 'hello-vaos :title "nohgl - Hello VAOs" :width 900 :height 600))
+(defmethod init-options ()
+  (gl:viewport 0 0 900 600)
+  (gl:clear-color .09 .09 .09 0))
+
+(defmethod format-vertex-attribs ()
+  (default-format))
 
 (defvao 'v1
   :vertex-shader "#version 330 core
@@ -54,5 +58,7 @@ void main()
 (define-render hello-vaos ()
   (gl:clear :color-buffer)
   (draw-vertex 'v1 6)
-  (draw-vertex 'v2)
-  (glfw:swap-buffers *g*))
+  (draw-vertex 'v2))
+
+(defun start-render ()
+  (start 'hello-vaos :title "nohgl - Hello VAOs" :width 900 :height 600))

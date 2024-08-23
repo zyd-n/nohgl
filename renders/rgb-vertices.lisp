@@ -1,16 +1,9 @@
 (defpackage #:nohgl.rgb-vertices
   (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
   (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-rgb))
+  (:export #:start-render))
 
 (in-package #:nohgl.rgb-vertices)
-
-(defmethod init-options ()
-  (gl:viewport 225 150 450 300)
-  (gl:clear-color .09 .09 .09 0))
-
-(defun start-rgb ()
-  (start 'rgb :title "nohgl - Every vertex gets a color" :width 900 :height 600))
 
 (defvao 'v1
   :vertex-shader
@@ -51,6 +44,10 @@ void main()
                 +1.0 -1.0 +0.0  +0.0 +0.0 +1.0)
   :uniforms '("xoffset"))
 
+(defmethod init-options ()
+  (gl:viewport 225 150 450 300)
+  (gl:clear-color .09 .09 .09 0))
+
 (defmethod format-vertex-attribs ()
   (let ((size-of-float (cffi:foreign-type-size :float)))
     (gl:vertex-attrib-pointer 0 3 :float :false (* 6 size-of-float) 0)
@@ -70,3 +67,6 @@ void main()
   (draw-vertex 'v1 3)
   (with-uniform-location "xoffset" 'v1
     (offset-by 0.0 uniform-location)))
+
+(defun start-render ()
+  (start 'rgb :title "nohgl - Every vertex gets a color" :width 900 :height 600))

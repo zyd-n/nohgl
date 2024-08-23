@@ -1,16 +1,9 @@
 (defpackage #:nohgl.xyz-as-color
   (:use #:cl #:org.shirakumo.fraf.math #:nohgl)
   (:local-nicknames (#:glfw #:org.shirakumo.fraf.glfw))
-  (:export #:start-xyz))
+  (:export #:start-render))
 
 (in-package #:nohgl.xyz-as-color)
-
-(defmethod init-options ()
-  (gl:viewport 225 150 450 300)
-  (gl:clear-color .09 .09 .09 0))
-
-(defun start-xyz ()
-  (start 'xyz :title "nohgl - Positions (xyzw) as color" :width 900 :height 600))
 
 (defvao 'v1
   :vertex-shader
@@ -41,6 +34,10 @@
                 -1.0 -1.0 +0.0
                 +1.0 -1.0 +0.0))
 
+(defmethod init-options ()
+  (gl:viewport 225 150 450 300)
+  (gl:clear-color .09 .09 .09 0))
+
 (defmethod format-vertex-attribs ()
   (let ((size-of-float (cffi:foreign-type-size :float)))
     (gl:vertex-attrib-pointer 0 3 :float :false (* 3 size-of-float) 0)
@@ -54,3 +51,6 @@
 (define-render xyz ()
   (gl:clear :color-buffer)
   (draw-vertex 'v1 3))
+
+(defun start-render ()
+  (start 'xyz :title "nohgl - Positions (xyzw) as color" :width 900 :height 600))
