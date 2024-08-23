@@ -16,39 +16,43 @@
   (default-format))
 
 (defvao 'v1
-  :vertex-shader "#version 330 core
+  :vertex-shader
+  "#version 330 core
 
-layout (location = 0) in vec3 Position;
+   layout (location = 0) in vec3 Position;
 
-void main()
-{
-  gl_Position = vec4(Position.x, Position.y, Position.z, 1.0);
-}
-"
-  :fragment-shader "#version 330 core
+   void main()
+   {
+     gl_Position = vec4(Position.x, Position.y, Position.z, 1.0);
+   }"
+  :fragment-shader
+  "#version 330 core
 
-out vec4 FragColor;
+   out vec4 FragColor;
 
-void main()
-{
-  FragColor = vec4(1.0f, 0.0f, 0.0f, 0.0f);
-}
-"
-  :verts (gfill :float
-                -1.0 +1.0 +0.0
-                -1.0 -1.0 +0.0
-                +0.0 +1.0 +0.0
-                +0.0 +1.0 +0.0
-                +1.0 -1.0 +0.0
-                +1.0 +1.0 +0.0))
+   void main()
+   {
+     FragColor = vec4(1.0f, 0.0f, 0.0f, 0.0f);
+   }"
+  :verts
+  (gfill :float
+   -1.0 +1.0 +0.0
+   -1.0 -1.0 +0.0
+   +0.0 +1.0 +0.0
+   +0.0 +1.0 +0.0
+   +1.0 -1.0 +0.0
+   +1.0 +1.0 +0.0))
 
 (defvao 'v2
-  :vertex-shader (shader-s "hello.vert")
-  :fragment-shader (shader-s "v2.frag")
-  :verts (gfill :float
-                -0.2 +1.0 +0.0
-                -0.6 -0.9 +0.0
-                +1.0 -1.0 +0.0))
+  :vertex-shader
+  (shader-s "hello.vert")
+  :fragment-shader
+  (shader-s "v2.frag")
+  :verts
+  (gfill :float
+   -0.2 +1.0 +0.0
+   -0.6 -0.9 +0.0
+   +1.0 -1.0 +0.0))
 
 (defun draw-vertex (vao-store &optional (vertex-count 3) (offset 0))
   (gl:use-program (program (get-vao vao-store)))

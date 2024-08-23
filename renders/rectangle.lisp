@@ -16,14 +16,18 @@
   (default-format))
 
 (defvao 'v1
-  :vertex-shader (shader-s "hello.vert")
-  :fragment-shader (shader-s "hello.frag")
-  :verts (gfill :float
-                +0.5 +0.5 +0.0
-                +0.5 -0.5 +0.0
-                -0.5 -0.5 +0.0
-                -0.5 +0.5 +0.0)
-  :indices (gfill :unsigned-int 0 1 3 1 2 3))
+  :vertex-shader
+  (shader-s "hello.vert")
+  :fragment-shader
+  (shader-s "hello.frag")
+  :verts
+  (gfill :float
+   +0.5 +0.5 +0.0
+   +0.5 -0.5 +0.0
+   -0.5 -0.5 +0.0
+   -0.5 +0.5 +0.0)
+  :indices
+  (gfill :unsigned-int 0 1 3 1 2 3))
 
 (defun draw-vertex (vao-store &optional (vertex-count 3) (offset 0))
   (gl:use-program (program (get-vao vao-store)))

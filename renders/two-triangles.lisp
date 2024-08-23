@@ -9,15 +9,18 @@
 ;; vertices (as opposed to two VAOs)
 
 (defvao 'v1
-  :vertex-shader (shader-s "hello.vert")
-  :fragment-shader (shader-s "hello.frag")
-  :verts (gfill :float
-                -1.0 +1.0 +0.0
-                -1.0 -1.0 +0.0
-                +0.0 +1.0 +0.0
-                +0.0 +1.0 +0.0
-                +1.0 -1.0 +0.0
-                +1.0 +1.0 +0.0))
+  :vertex-shader
+  (shader-s "hello.vert")
+  :fragment-shader
+  (shader-s "hello.frag")
+  :verts
+  (gfill :float
+   -1.0 +1.0 +0.0
+   -1.0 -1.0 +0.0
+   +0.0 +1.0 +0.0
+   +0.0 +1.0 +0.0
+   +1.0 -1.0 +0.0
+   +1.0 +1.0 +0.0))
 
 (defmethod init-options ()
   (gl:viewport 0 0 900 600)

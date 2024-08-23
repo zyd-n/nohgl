@@ -27,12 +27,12 @@
    void main()
    {
      FragColor = vertexPos;
-   }
-"
-  :verts (gfill :float
-                +0.0 +1.0 +0.0
-                -1.0 -1.0 +0.0
-                +1.0 -1.0 +0.0))
+   }"
+  :verts
+  (gfill :float
+   +0.0 +1.0 +0.0
+   -1.0 -1.0 +0.0
+   +1.0 -1.0 +0.0))
 
 (defmethod init-options ()
   (gl:viewport 225 150 450 300)

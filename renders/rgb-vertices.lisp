@@ -9,40 +9,39 @@
   :vertex-shader
   "#version 330 core
 
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 color;
+   layout (location = 0) in vec3 position;
+   layout (location = 1) in vec3 color;
 
-out vec3 vertexColor;
-uniform float xoffset;
+   out vec3 vertexColor;
+   uniform float xoffset;
 
-void main()
-{
-  gl_Position = vec4(position.x + xoffset, position.y, position.z, 1.0);
-  vertexColor = color;
-}
-"
+   void main()
+   {
+     gl_Position = vec4(position.x + xoffset, position.y, position.z, 1.0);
+     vertexColor = color;
+   }"
   :fragment-shader
   "#version 330 core
 
-out vec4 FragColor;
-in vec3 vertexColor;
+   out vec4 FragColor;
+   in vec3 vertexColor;
 
-void main()
-{
-  FragColor = vec4(vertexColor, 1.0);
-}
-"
-  :verts (gfill :float
-                ;;   <pos>          <color>
-                ;; ---------------------------
-                ;;
-                ;;   top              red
-                +0.0 +1.0 +0.0  +1.0 +0.0 +0.0
-                ;; bottom-left        green
-                -1.0 -1.0 +0.0  +0.0 +1.0 +0.0
-                ;; bottom-right       blue
-                +1.0 -1.0 +0.0  +0.0 +0.0 +1.0)
-  :uniforms '("xoffset"))
+   void main()
+   {
+     FragColor = vec4(vertexColor, 1.0);
+   }"
+  :verts
+  (gfill :float
+   ;;   <pos>          <color>
+   ;; ---------------------------
+   ;;   top              red
+   +0.0 +1.0 +0.0  +1.0 +0.0 +0.0
+   ;; bottom-left        green
+   -1.0 -1.0 +0.0  +0.0 +1.0 +0.0
+   ;; bottom-right       blue
+   +1.0 -1.0 +0.0  +0.0 +0.0 +1.0)
+  :uniforms
+  '("xoffset"))
 
 (defmethod init-options ()
   (gl:viewport 225 150 450 300)

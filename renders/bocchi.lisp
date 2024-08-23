@@ -80,17 +80,21 @@
    {
      FragColor = texture(uftex, ftex) * vec4(fcolor, 1.0);
    }"
-  :verts (gfill :float
-                ;;  <pos>        <color>        <texture>
-                ;; ---------------------------------------
-                +0.5 +0.5 +0.0   1.0 0.0 0.0    1.0 1.0
-                +0.5 -0.5 +0.0   0.0 1.0 0.0    1.0 0.0
-                -0.5 -0.5 +0.0   0.0 0.0 1.0    0.0 0.0
-                -0.5 +0.5 +0.0   1.0 1.0 0.0    0.0 1.0)
-  :indices (gfill :unsigned-int 0 1 3 1 2 3)
-  :textures '(("bag.png" bag 2d-rgb)
-              ("in-the-bag.png" in-the-bag 2d-rgb))
-  :uniforms '("uftex"))
+  :verts
+  (gfill :float
+   ;;  <pos>        <color>        <texture>
+   ;; ---------------------------------------
+   +0.5 +0.5 +0.0   1.0 0.0 0.0    1.0 1.0
+   +0.5 -0.5 +0.0   0.0 1.0 0.0    1.0 0.0
+   -0.5 -0.5 +0.0   0.0 0.0 1.0    0.0 0.0
+   -0.5 +0.5 +0.0   1.0 1.0 0.0    0.0 1.0)
+  :indices
+  (gfill :unsigned-int 0 1 3 1 2 3)
+  :textures
+  '(("bag.png" bag 2d-rgb)
+    ("in-the-bag.png" in-the-bag 2d-rgb))
+  :uniforms
+  '("uftex"))
 
 ;;; Render/Draw code
 
@@ -110,8 +114,8 @@
   `(incf ,n))
 
 (define-render bocchi
-    ((texture-pool '(in-the-bag bag))
-     (texture-frames 0))
+   ((texture-pool '(in-the-bag bag))
+    (texture-frames 0))
   (labels ((cycle-texture (&key (frames 0))
              (when (>= texture-frames frames)
                (shiftf texture-pool (cycle-textures texture-pool))
