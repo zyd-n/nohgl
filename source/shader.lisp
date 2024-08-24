@@ -41,6 +41,7 @@
   (with-slots (name) vao
     (compile-shaders vao)
     (initialize-vao vao)
+    (register-texture-units vao name)
     (free-vao (get-vao name))
     (register-vao vao name)))
 
@@ -146,7 +147,8 @@
 (defun initialize-vaos (vaos)
   (loop for vao being the hash-value of vaos
         do (compile-shaders vao)
-           (initialize-vao vao)))
+           (initialize-vao vao)
+           (register-texture-units vao (name vao))))
 
 (defun add-shader (program src type)
   (let ((shader (gl:create-shader type)))
@@ -165,8 +167,11 @@
       (error condition :shader-log (gl:get-program-info-log program))
       (gl:get-program-info-log program)))
 
+(defgeneric register-texture-units (vao-store name))
+(defmethod register-texture-units ((vao-store store) name))
+
 (defmethod compile-shaders ((vao-store store))
-  (with-slots (vertex-shader fragment-shader program uniforms) vao-store
+  (with-slots (vertex-shader fragment-shader program uniforms name) vao-store
     (setf (program vao-store) (gl:create-program))
     (when (zerop program)
       (error "An error occured when creating program object."))

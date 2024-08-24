@@ -32,6 +32,7 @@
    #:height
    #:data
    #:define-texture-format
+   #:register-texture-units
    #:get-texture
    #:asset
    #:*asset-dir*
