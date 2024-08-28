@@ -104,6 +104,12 @@
 
 ;;; Render/Draw code
 
+(defmacro with-vao (store &body body)
+  `(let ((v (get-vao ',store)))
+     (gl:use-program (program v))
+     (gl:bind-vertex-array (vao v))
+     ,@body))
+
 (defun draw-vertex (vao-store &optional (vertex-count 3) (offset 0))
   (gl:use-program (program (get-vao vao-store)))
   (gl:bind-vertex-array (vao (get-vao vao-store)))
@@ -114,27 +120,38 @@
     (%gl:uniform-1i (gl:get-uniform-location program "texture0") 0)
     (%gl:uniform-1i (gl:get-uniform-location program "texture1") 1)))
 
+;; Really limited. We need a way to pass in texture units as proper objects
+;; with all their needed information (e.g, :texture-2d).
+(defun bind-textures (vao &rest textures)
+  (let ((texture-count (length textures)))
+    (if (> texture-count 16)
+        (error "Maximum number of textures is 16, got ~s instead with object:~%~s"
+               texture-count textures)
+        (dotimes (n texture-count)
+          (gl:active-texture (intern (format nil "~s~d" 'texture n)
+                                     (find-package :keyword)))
+          (gl:bind-texture :texture-2d (get-texture (elt textures n) vao))))))
+
 (define-render happy-container ()
   (let* ((axis (vec3 0.0 0.0 1.0))
          (scale (vec3 0.5 -0.5 0.0))
          (angle (glfw:time))
          (transform (meye 4)))
     (gl:clear :color-buffer)
-    (gl:active-texture :texture0)
-    (gl:bind-texture :texture-2d (get-texture 'container 'v1))
-    (gl:active-texture :texture1)
-    (gl:bind-texture :texture-2d (get-texture 'yuno 'v1))
-    (cffi:with-pointer-to-vector-data (p (marr (nmscale (nmrotate transform axis angle) scale)))
-      (with-uniform-location "transform" 'v1
-        (%gl:uniform-matrix-4fv uniform-location 1 :false p)))
-    (draw-vertex 'v1 6)
-    (dotimes (i 4)
-      (let ((data (nmtranslate (nmscale (nmrotate transform axis (* -1.0 angle))
-                                        scale)
-                               (vec3 1.0 1.0 0.0))))
-        (cffi:with-pointer-to-vector-data (p (marr data))
-          (with-uniform-location "transform" 'v1
-            (%gl:uniform-matrix-4fv uniform-location 1 :false p)))))))
+    (bind-textures 'v1 'container 'yuno)
+    (with-vao v1
+      (cffi:with-pointer-to-vector-data (p (marr (nmscale (nmrotate transform axis angle) scale)))
+        (with-uniform-location "transform" 'v1
+          (%gl:uniform-matrix-4fv uniform-location 1 :false p)))
+      (%gl:draw-elements :triangles 6 :unsigned-int 0)
+      (dotimes (i 4)
+        (let ((data (nmtranslate (nmscale (nmrotate transform axis (* -1.0 angle))
+                                          scale)
+                                 (vec3 1.0 1.0 0.0))))
+          (cffi:with-pointer-to-vector-data (p (marr data))
+            (with-uniform-location "transform" 'v1
+              (%gl:uniform-matrix-4fv uniform-location 1 :false p)))
+          (%gl:draw-elements :triangles 6 :unsigned-int 0))))))
 
 ;;; Start
 
