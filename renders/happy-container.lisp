@@ -59,9 +59,11 @@
    out vec3 fcolor;
    out vec2 ftex;
 
+   uniform mat4 transform;
+
    void main()
    {
-     gl_Position = vec4(position, 1.0);
+     gl_Position = transform * vec4(position, 1.0);
      fcolor = color;
      ftex = tex;
    }"
@@ -81,7 +83,7 @@
 
      // We can change the x value of the vec2 to -1 to horizontally flip/reverse
      // 'texture1', aka awesomeface.
-     FragColor = mix(texture(texture0, ftex), texture(texture1, (vec2(-1.0, 1.0) * ftex)), 0.4);
+     FragColor = mix(texture(texture0, ftex), texture(texture1, (vec2(1.0, 1.0) * ftex)), 0.9);
    }"
   :verts
   (gfill :float
@@ -95,9 +97,10 @@
   (gfill :unsigned-int 0 1 3 1 2 3)
   :textures
   '(("container.png" container 2d-rgb)
-    ("awesomeface.png" awesome-face 2d-rgba))
+    ("awesomeface.png" awesome-face 2d-rgba)
+    ("yuno.png" yuno 2d-rgb))
   :uniforms
-  '("texture0" "texture1"))
+  '("texture0" "texture1" "transform"))
 
 ;;; Render/Draw code
 
@@ -111,19 +114,27 @@
     (%gl:uniform-1i (gl:get-uniform-location program "texture0") 0)
     (%gl:uniform-1i (gl:get-uniform-location program "texture1") 1)))
 
-(define-render happy-container
-   ((y 1.0)
-    (grow t))
-  (let ((v (varr (vec2 1.0 y))))
+(define-render happy-container ()
+  (let* ((axis (vec3 0.0 0.0 1.0))
+         (scale (vec3 0.5 -0.5 0.0))
+         (angle (glfw:time))
+         (transform (meye 4)))
     (gl:clear :color-buffer)
     (gl:active-texture :texture0)
     (gl:bind-texture :texture-2d (get-texture 'container 'v1))
     (gl:active-texture :texture1)
-    (gl:bind-texture :texture-2d (get-texture 'awesome-face 'v1))
-    (cffi:with-pointer-to-vector-data (p v)
-      (with-uniform-location "stretch" 'v1
-        (%gl:uniform-2fv uniform-location 1 p)))
-    (draw-vertex 'v1 6)))
+    (gl:bind-texture :texture-2d (get-texture 'yuno 'v1))
+    (cffi:with-pointer-to-vector-data (p (marr (nmscale (nmrotate transform axis angle) scale)))
+      (with-uniform-location "transform" 'v1
+        (%gl:uniform-matrix-4fv uniform-location 1 :false p)))
+    (draw-vertex 'v1 6)
+    (dotimes (i 4)
+      (let ((data (nmtranslate (nmscale (nmrotate transform axis (* -1.0 angle))
+                                        scale)
+                               (vec3 1.0 1.0 0.0))))
+        (cffi:with-pointer-to-vector-data (p (marr data))
+          (with-uniform-location "transform" 'v1
+            (%gl:uniform-matrix-4fv uniform-location 1 :false p)))))))
 
 ;;; Start
 
