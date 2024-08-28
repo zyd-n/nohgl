@@ -104,6 +104,11 @@
 
 ;;; Render/Draw code
 
+;; We should probably make `v' explicit: have the user pass in a name to
+;; reference the store.
+;;
+;; (with-vao (foo-bar v1)
+;;   (gl:do-some-stuff v1))
 (defmacro with-vao (store &body body)
   `(let ((v (get-vao ',store)))
      (gl:use-program (program v))
@@ -143,15 +148,7 @@
       (cffi:with-pointer-to-vector-data (p (marr (nmscale (nmrotate transform axis angle) scale)))
         (with-uniform-location "transform" 'v1
           (%gl:uniform-matrix-4fv uniform-location 1 :false p)))
-      (%gl:draw-elements :triangles 6 :unsigned-int 0)
-      (dotimes (i 4)
-        (let ((data (nmtranslate (nmscale (nmrotate transform axis (* -1.0 angle))
-                                          scale)
-                                 (vec3 1.0 1.0 0.0))))
-          (cffi:with-pointer-to-vector-data (p (marr data))
-            (with-uniform-location "transform" 'v1
-              (%gl:uniform-matrix-4fv uniform-location 1 :false p)))
-          (%gl:draw-elements :triangles 6 :unsigned-int 0))))))
+      (%gl:draw-elements :triangles 6 :unsigned-int 0))))
 
 ;;; Start
 
