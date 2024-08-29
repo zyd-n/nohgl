@@ -8,7 +8,7 @@
 ;;; Initialization Options
 
 (defmethod init-options ()
-  (gl:viewport 0 0 800 600)
+  (gl:viewport 0 0 (glfw:width *g*) (glfw:height *g*))
   (gl:clear-color .09 .09 .09 0)
   (gl:enable :depth-test))
 
@@ -171,7 +171,7 @@
 (define-render 3d ()
   (let* ((model (m* (meye 4) (mrotation (vec3 0.5 1.0 0.0) (* (glfw:time) 1.5))))
          (view (m* (meye 4) (mtranslation (vec3 0.0 0.0 -3.0))))
-         (projection (mperspective 35.0 (/ 800 600) 0.1 100.0))
+         (projection (mperspective 35.0 (/ (glfw:width *g*) (glfw:height *g*)) 0.1 100.0))
          (v (get-vao 'v1)))
     (gl:clear :color-buffer :depth-buffer)
     (bind-textures 'v1 'container 'awesome-face)
