@@ -83,7 +83,7 @@
 
      // We can change the x value of the vec2 to -1 to horizontally flip/reverse
      // 'texture1', aka awesomeface.
-     FragColor = mix(texture(texture0, ftex), texture(texture1, (vec2(1.0, 1.0) * ftex)), 0.9);
+     FragColor = mix(texture(texture0, ftex), texture(texture1, (vec2(1.0, 1.0) * ftex)), 0.2);
    }"
   :verts
   (gfill :float
@@ -97,8 +97,7 @@
   (gfill :unsigned-int 0 1 3 1 2 3)
   :textures
   '(("container.png" container 2d-rgb)
-    ("awesomeface.png" awesome-face 2d-rgba)
-    ("yuno.png" yuno 2d-rgb))
+    ("awesomeface.png" awesome-face 2d-rgba))
   :uniforms
   '("texture0" "texture1" "transform"))
 
@@ -128,7 +127,8 @@
 ;; Really limited. We need a way to pass in texture units as proper objects
 ;; with all their needed information (e.g, :texture-2d).
 (defun bind-textures (vao &rest textures)
-  (let ((texture-count (length textures)))
+  (let ((*package* (find-package :nohgl.happy-container))
+        (texture-count (length textures)))
     (if (> texture-count 16)
         (error "Maximum number of textures is 16, got ~s instead with object:~%~s"
                texture-count textures)
@@ -143,7 +143,7 @@
          (angle (glfw:time))
          (transform (meye 4)))
     (gl:clear :color-buffer)
-    (bind-textures 'v1 'container 'yuno)
+    (bind-textures 'v1 'container 'awesome-face)
     (with-vao v1
       (cffi:with-pointer-to-vector-data (p (marr (nmscale (nmrotate transform axis angle) scale)))
         (with-uniform-location "transform" 'v1
