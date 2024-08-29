@@ -42,6 +42,8 @@
    #:with-uniform-location
    #:debug-with-time
    #:shader-s
-   #:*shader-dir*))
+   #:*shader-dir*
+   #:degree
+   #:radian))
 
 

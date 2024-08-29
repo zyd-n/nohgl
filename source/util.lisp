@@ -14,3 +14,9 @@
            (gl:get-uniform-location (program (get-vao ,vao)) ,uniform-name)))
      (progn (gl:use-program (program (get-vao ,vao)))
             ,@body)))
+
+(defun radian (degree)
+  (* degree (/ pi 180)))
+
+(defun degree (radian)
+  (* radian (/ 180 pi)))
