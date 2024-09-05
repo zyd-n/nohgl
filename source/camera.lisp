@@ -41,7 +41,8 @@
                             (unless (member k *key-stack*)
                               (push key *key-stack*))
                             (setf *key-stack* (remove k *key-stack*)))))))
-    (update-keys)))
+    (update-keys)
+    (when (eq key :escape) (quit))))
 
 ;; TODO: Fix hardcoded values
 ;; TODO: Account for when our mouse moves outside of the window and then comes back.
