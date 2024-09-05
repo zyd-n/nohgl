@@ -90,7 +90,7 @@
   `(satisfies list-of-strings-p))
 
 (defun maybe-update-store (old new)
-  (when (and old *g*)
+  (when (and old (current-context))
     (setf (update old) new)))
 
 ;; TODO: Add new type that checks if textures is a list of lists that are

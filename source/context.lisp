@@ -2,6 +2,15 @@
 
 (defvar *g* nil)
 
+(defun current-context ()
+  *g*)
+
+(defun (setf current-context) (value)
+  (setf *g* value))
+
+(defun context-exists-p ()
+  (current-context))
+
 ;; TODO: VAOs should be a slot in g. This way we can have package local vaos
 ;; and vaos specific to a context. This will fix our initialization problem
 ;; to: we can just update the vaos on *g* in the main loop. No need to look at
@@ -17,8 +26,12 @@
   ((glfw:title :initform "nohgl")
    (context-version-major :initform 3)
    (opengl-profile :initform :opengl-core-profile)
-   (user-quits :initform nil :accessor should-quit)))
+   (user-quits :initform nil :accessor should-quit)
+   (clock :initform nil :accessor clock)))
+
+(defmethod initialize-instance :after ((context g) &key)
+  (setf (clock context) (time-by (nsec 1))))
 
 (defun quit ()
-  (with-slots (quit) *g*
-    (setf (should-quit *g*) t)))
+  (with-slots (quit) (current-context)
+    (setf (should-quit (current-context)) t)))
