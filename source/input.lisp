@@ -2,9 +2,9 @@
 
 ;; Maybe this file should be renamed to events.lisp?
 
-(defmethod glfw:key-changed ((window g) key scan-code action modifiers)
-  (when (eq key :escape)
-    (quit)))
+;; TODO: Make it so that when you press escape, we change the input mode of
+;; the cursor to :cursor-normal. However, when we click the window, it should
+;; change back to :cursor-disabled.
 
 (defmethod glfw:window-resized ((window g) width height)
   (gl:viewport 0 0 width height))

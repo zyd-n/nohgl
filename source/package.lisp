@@ -44,6 +44,26 @@
    #:shader-s
    #:*shader-dir*
    #:degree
-   #:radian))
+   #:radian
+   #:limit
+   ;; context
+   #:current-context
+   #:context-exists-p
+   ;; time
+   #:dt
+   ;; camera
+   #:camera
+   #:camera-position
+   #:camera-target
+   #:camera-up
+   #:camera-right
+   #:camera-view
+   #:camera-yaw
+   #:camera-pitch
+   #:camera-speed
+   #:camera-sens
+   #:mouse-x
+   #:mouse-y
+   #:*key-stack*))
 
 

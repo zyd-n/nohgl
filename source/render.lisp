@@ -23,7 +23,8 @@
      (,@(loop :for binding in bindings
               :collect `(,(name binding)
                          :initarg ,(initarg binding)
-                         :accessor ,(accessor binding))))))
+                         :accessor ,(accessor binding)))
+      (camera :initform (make-instance 'camera) :accessor camera))))
 
 (defun +prepare (name bindings)
   `(defmethod prepare ((render ,name)

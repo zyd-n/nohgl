@@ -8,9 +8,14 @@
 ;;; Initialization Options
 
 (defmethod init-options ()
-  (gl:viewport 0 0 (glfw:width *g*) (glfw:height *g*))
-  (gl:clear-color .09 .09 .09 0)
-  (gl:enable :depth-test))
+  (let ((camera (camera (current-context))))
+    (gl:viewport 0 0 (glfw:width (current-context)) (glfw:height (current-context)))
+    (gl:clear-color .09 .09 .09 0)
+    (gl:enable :depth-test)
+    (setf (mouse-x camera) (/ (glfw:width (current-context)) 2))
+    (setf (mouse-y camera) (/ (glfw:height (current-context)) 2))
+    ;; TODO: Implement a way to toggle the cursor. Perhaps a double click?
+    (setf (glfw:input-mode :cursor (current-context)) :cursor-disabled)))
 
 ;;; Texture Formats
 
@@ -41,6 +46,13 @@
 
 ;;; VAOs
 
+;; TODO: Write elisp function to quickly change shader from its string form to
+;; (shader-s ...) with a file. We prefer strings when messing with shader code
+;; a lot but we don't need them as strings once we've settled on something.
+
+;; TODO: Write elisp function to recompile shader/render when in a shader file
+;; so its at least somewhat tolerable when interactively writing a shader from
+;; a file rather than string.
 (defvao 'v1
   :vertex-shader
   "#version 330 core
@@ -71,7 +83,7 @@
 
    void main()
    {
-     FragColor = mix(texture(texture0, otexture_coord), texture(texture1, otexture_coord), 0.9);
+     FragColor = mix(texture(texture0, otexture_coord), texture(texture1, otexture_coord), 0.5);
    }"
   :verts
   (gfill :float
@@ -187,7 +199,7 @@
 
 (defmacro update-radius-direction (radius)
   `(progn
-     (when (>= ,radius 2.9)
+     (when (>= ,radius 4.9)
        (setf radius-direction :negative))
      (when (<= radius 1.5)
        (setf radius-direction :positive))))
@@ -204,8 +216,19 @@
 (defun update-yuno-distances (yunos)
   (setf *yuno-positions* yunos))
 
-(defmacro dt+ (n)
-  `(incf dt ,n))
+;; TODO: Rename to something better
+(defmacro stepn+ (n)
+  `(incf stepn ,n))
+
+(defun update-camera ()
+  (with-accessors ((position camera-position) (target camera-target) (speed camera-speed) (up camera-up))
+      (camera (current-context))
+    (loop for key in *key-stack*
+          do (case key
+               (:w (setf position (v+ position (v* target (* (dt) speed)))))
+               (:a (setf position (v- position (v* (vunit (vc target up)) (* (dt) speed)))))
+               (:s (setf position (v- position (v* target (* (dt) speed)))))
+               (:d (setf position (v+ position (v* (vunit (vc target up)) (* (dt) speed)))))))))
 
 ;;; Render
 
@@ -214,24 +237,26 @@
 ;; getter: (get-vao 'v1)
 
 (define-render circular-yunos
-   ((dt 0.0)
+   ((stepn 0.0)
     (radius 0.1)
-    (radius-direction :positive))
-  (let ((view (m* (meye 4) (mtranslation (vec3 0.0 0.0 -9.0))))
-        (projection (mperspective 35.0 (/ (glfw:width *g*) (glfw:height *g*)) 0.1 100.0)))
-    (gl:clear :color-buffer :depth-buffer)
-    (bind-textures 'v1 'container 'yuno)
-    (gl:use-program (program (get-vao 'v1)))
-    (upload-uniforms 'v1 (uf-pairs (("view" view) ("projection" projection))))
-    (update-radius-direction radius)
-    (rotate-yunos *yuno-positions*)
-    (rotate-yunos (list (vec3 +0.0 +0.0 +0.0)))
-    (dt+ 0.01)
-    (update-yuno-distances (vec3r dt 8 radius nil))
-    (gl:bind-vertex-array (vao (get-vao 'v1)))
-    (if (radius-direction+ radius-direction)
-        (radius+ 0.01)
-        (radius- 0.01))))
+    (radius-direction :positive) )
+  (with-slots (camera-position camera-target camera-up) (camera (current-context))
+    (let ((view (mlookat camera-position (v+ camera-position camera-target) camera-up))
+          (projection (mperspective 35.0 (/ (glfw:width *g*) (glfw:height *g*)) 0.1 100.0)))
+      (gl:clear :color-buffer :depth-buffer)
+      (bind-textures 'v1 'container 'yuno)
+      (gl:use-program (program (get-vao 'v1)))
+      (upload-uniforms 'v1 (uf-pairs (("view" view) ("projection" projection))))
+      (update-radius-direction radius)
+      (rotate-yunos *yuno-positions*)
+      (rotate-yunos (list (vec3 +0.0 +0.0 +0.0)))
+      (stepn+ 0.01)
+      (update-yuno-distances (vec3r stepn 8 radius nil))
+      (gl:bind-vertex-array (vao (get-vao 'v1)))
+      (if (radius-direction+ radius-direction)
+          (radius+ 0.01)
+          (radius- 0.01))
+      (update-camera))))
 
 ;;; Start
 

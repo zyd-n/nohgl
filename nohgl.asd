@@ -21,6 +21,7 @@
                              (:file "input")
                              (:file "time")
                              (:file "render")
+                             (:file "camera")
                              (:file "shader")
                              (:file "texture")
                              (:file "init")))))
