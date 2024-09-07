@@ -64,6 +64,8 @@
    #:camera-sens
    #:mouse-x
    #:mouse-y
-   #:*key-stack*))
+   #:*key-stack*
+   ;; input
+   #:maybe-double-click))
 
 

@@ -256,7 +256,8 @@
       (if (radius-direction+ radius-direction)
           (radius+ 0.01)
           (radius- 0.01))
-      (update-camera))))
+      (update-camera)
+      (maybe-double-click))))
 
 ;;; Start
 

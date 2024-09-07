@@ -27,7 +27,10 @@
    (context-version-major :initform 3)
    (opengl-profile :initform :opengl-core-profile)
    (user-quits :initform nil :accessor should-quit)
-   (clock :initform nil :accessor clock)))
+   (clock :initform nil :accessor clock)
+   ;; This will hold all mouse-events, a list of mouse-event
+   ;; objects. Currently will just hold `double-click'.
+   (mouse-events :initform `(,(make-instance 'double-click)) :accessor mouse-events)))
 
 (defmethod initialize-instance :after ((context g) &key)
   (setf (clock context) (time-by (nsec 1))))
