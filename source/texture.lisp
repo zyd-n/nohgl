@@ -19,9 +19,6 @@
 (defun get-texture-format (name)
   (symbol-function name))
 
-;; (defun add-texture-format (name format)
-;;   (setf (gethash name *texture-formats*) format))
-
 (defmacro define-texture-format (name slots &body body)
   `(defun ,name (texture)
      (with-slots ,slots texture
@@ -42,6 +39,8 @@
         do (push (register-texture name source format)
                  (textures vao))))
 
+;; If we're always reinitializing (we are), perhaps its not worth doing any
+;; initialization at compile time *at all*.
 (defgeneric reinitialize-textures (vao))
 (defmethod reinitialize-textures ((vao store))
   (with-accessors ((textures textures)) vao
