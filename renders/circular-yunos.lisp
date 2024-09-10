@@ -85,51 +85,7 @@
    {
      FragColor = mix(texture(texture0, otexture_coord), texture(texture1, otexture_coord), 0.5);
    }"
-  :verts
-  (gfill :float
-   -0.5 -0.5 -0.5 +0.0 +0.0
-   +0.5 -0.5 -0.5 +1.0 +0.0
-   +0.5 +0.5 -0.5 +1.0 +1.0
-   +0.5 +0.5 -0.5 +1.0 +1.0
-   -0.5 +0.5 -0.5 +0.0 +1.0
-   -0.5 -0.5 -0.5 +0.0 +0.0
-
-   -0.5 -0.5 +0.5 +0.0 +0.0
-   +0.5 -0.5 +0.5 +1.0 +0.0
-   +0.5 +0.5 +0.5 +1.0 +1.0
-   +0.5 +0.5 +0.5 +1.0 +1.0
-   -0.5 +0.5 +0.5 +0.0 +1.0
-   -0.5 -0.5 +0.5 +0.0 +0.0
-
-   -0.5 +0.5 +0.5 +1.0 +0.0
-   -0.5 +0.5 -0.5 +1.0 +1.0
-   -0.5 -0.5 -0.5 +0.0 +1.0
-   -0.5 -0.5 -0.5 +0.0 +1.0
-   -0.5 -0.5 +0.5 +0.0 +0.0
-   -0.5 +0.5 +0.5 +1.0 +0.0
-
-   +0.5 +0.5 +0.5 +1.0 +0.0
-   +0.5 +0.5 -0.5 +1.0 +1.0
-   +0.5 -0.5 -0.5 +0.0 +1.0
-   +0.5 -0.5 -0.5 +0.0 +1.0
-   +0.5 -0.5 +0.5 +0.0 +0.0
-   +0.5 +0.5 +0.5 +1.0 +0.0
-
-   -0.5 -0.5 -0.5 +0.0 +1.0
-   +0.5 -0.5 -0.5 +1.0 +1.0
-   +0.5 -0.5 +0.5 +1.0 +0.0
-   +0.5 -0.5 +0.5 +1.0 +0.0
-   -0.5 -0.5 +0.5 +0.0 +0.0
-   -0.5 -0.5 -0.5 +0.0 +1.0
-
-   -0.5 +0.5 -0.5 +0.0 +1.0
-   +0.5 +0.5 -0.5 +1.0 +1.0
-   +0.5 +0.5 +0.5 +1.0 +0.0
-   +0.5 +0.5 +0.5 +1.0 +0.0
-   -0.5 +0.5 +0.5 +0.0 +0.0
-   -0.5 +0.5 -0.5 +0.0 +1.0)
-  :indices
-  (gfill :unsigned-int 0 1 3 1 2 3)
+  :verts (make-instance 'cube)
   :textures
   '(("container.png" container 2d-rgb)
     ("yuno.png" yuno 2d-rgb))
@@ -153,7 +109,7 @@
         (dotimes (n texture-count)
           (gl:active-texture (intern (format nil "~s~d" 'texture n)
                                      (find-package :keyword)))
-          (gl:bind-texture :texture-2d (get-texture (elt textures n) vao))))))
+          (gl:bind-texture :texture-2d (id (get-texture (elt textures n) vao)))))))
 
 (defun upload-uniforms (vao uniforms-with-data)
   (loop for (uniform data) in uniforms-with-data

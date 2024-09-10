@@ -9,6 +9,12 @@
       (setf (gl:glaref arr i)
             (elt args i)))))
 
+(defun vfill (type v)
+  (let ((arr (gl:alloc-gl-array type (length v))))
+    (dotimes (i (length v) arr)
+      (setf (gl:glaref arr i)
+            (elt v i)))))
+
 (defmacro with-uniform-location (uniform-name vao &body body)
   `(let ((,(intern (symbol-name 'uniform-location) *package*)
            (gl:get-uniform-location (program (get-vao ,vao)) ,uniform-name)))

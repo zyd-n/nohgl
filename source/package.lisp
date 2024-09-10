@@ -26,6 +26,11 @@
    #:get-vao
    #:format-vertex-attribs
    #:default-format
+   ;; shapes
+   #:shape
+   #:attributes
+   #:z-facing-quad
+   #:cube
    ;; textures
    #:texture
    #:width
@@ -37,6 +42,7 @@
    #:asset
    #:*asset-dir*
    #:*texture-formats*
+   #:id
    ;; util
    #:gfill
    #:with-uniform-location

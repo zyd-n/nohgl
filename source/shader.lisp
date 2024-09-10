@@ -97,24 +97,25 @@
 ;; three pair values: (source texture-name texture-format)
 
 (declaim (ftype (function (symbol &key
-                                  (:verts gl:gl-array)
+                                  (:verts (or nohgl:shape vector array gl:gl-array sb-sys:system-area-pointer))
                                   (:vertex-shader string)
                                   (:fragment-shader string)
                                   (:uniforms list-of-strings)
-                                  (:indices gl:gl-array)
+                                  (:indices (or gl:gl-array null))
                                   (:textures list)))
                 defvao))
 (defun defvao (name &key (verts (error 'vao-without-verts))
                          (vertex-shader (error 'vao-without-vertex-shader))
                          (fragment-shader (error 'vao-without-fragment-shader))
-                         uniforms
-                         indices
-                         textures)
+                         (uniforms nil)
+                         (indices nil)
+                         (textures nil))
+  (declare (ignorable indices))
   (let ((current-store (get-vao name))
         (new-store (make-instance 'store :verts verts
+                                         :indices indices
                                          :vertex-shader vertex-shader
                                          :fragment-shader fragment-shader
-                                         :indices indices
                                          :name name)))
     (initialize-uniforms new-store uniforms)
     (initialize-textures new-store textures)
@@ -129,15 +130,21 @@
   (default-format))
 
 (defmethod initialize-vao ((vao-store store))
-  (with-accessors ((vao vao) (vbo vbo) (ebo ebo) (verts verts) (indices indices)) vao-store
+  (with-accessors ((vao vao) (vbo vbo) (ebo ebo) (verts verts) (vao-indices indices)) vao-store
     (setf vao (gl:gen-vertex-array)
           vbo (gl:gen-buffer)
           ebo (gl:gen-buffer))
     (gl:bind-vertex-array vao)
     (gl:bind-buffer :array-buffer vbo)
-    (gl:buffer-data :array-buffer :static-draw verts)
+    ;; TODO: Fix this disgusting hack of shit immediately
+    (gl:buffer-data :array-buffer :static-draw
+                    (if (subtypep (type-of verts) 'shape)
+                        (vfill :float (attributes verts))
+                        verts))
     (gl:bind-buffer :element-array-buffer ebo)
-    (when indices (gl:buffer-data :element-array-buffer :static-draw indices))
+    ;; TODO: Fix this disgusting hack of shit immediately
+    (cond ((indices verts) (gl:buffer-data :element-array-buffer :static-draw (vfill :unsigned-int (indices verts))))
+          (vao-indices (gl:buffer-data :element-array-buffer :static-draw vao-indices)))
     (format-vertex-attribs)
     (generate-textures vao-store)
     ;; unbind
@@ -147,6 +154,7 @@
 (defun initialize-vaos (vaos)
   (loop for vao being the hash-value of vaos
         do (compile-shaders vao)
+           (reinitialize-textures vao)
            (initialize-vao vao)
            (register-texture-units vao (name vao))))
 
