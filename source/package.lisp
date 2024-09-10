@@ -49,6 +49,9 @@
    #:debug-with-time
    #:shader-s
    #:*shader-dir*
+   #:*main-dir*
+   #:*built-as-executable*
+   #:use-relative-dir
    #:degree
    #:radian
    #:limit

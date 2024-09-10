@@ -6,6 +6,7 @@
   :description "A personal library and testbed for OpenGL theatrics."
   :serial T
   :depends-on (:alexandria
+               :uiop
                :glfw
                :cl-opengl
                :local-time
@@ -26,3 +27,13 @@
                              (:file "shader")
                              (:file "texture")
                              (:file "init")))))
+
+(asdf:defsystem nohgl-circular-yunos
+  :serial T
+  :depends-on (:nohgl)
+  :defsystem-depends-on (:deploy)
+  :build-operation "deploy-op"
+  :build-pathname "nohgl"
+  :entry-point "nohgl.circular-yunos:start-render"
+  :components ((:module "renders"
+                :components ((:file "circular-yunos")))))

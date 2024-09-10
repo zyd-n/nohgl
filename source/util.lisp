@@ -3,6 +3,12 @@
 (defconstant SIZE-OF-FLOAT (cffi:foreign-type-size :float))
 (defparameter *main-dir* (format nil "~A" (asdf:system-source-directory (asdf:find-system "nohgl"))))
 
+(defvar *built-as-executable* nil)
+
+(defun use-relative-dir ()
+  (setf *main-dir* (uiop/os:getcwd))
+  (setf *asset-dir* (format nil "~Aassets/" *main-dir*)))
+
 (defun gfill (type &rest args)
   (let ((arr (gl:alloc-gl-array type (length args))))
     (dotimes (i (length args) arr)

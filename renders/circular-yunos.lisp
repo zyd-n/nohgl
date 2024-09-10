@@ -218,4 +218,5 @@
 ;;; Start
 
 (defun start-render ()
+  (when *built-as-executable* (use-relative-dir))
   (start 'circular-yunos :title "nohgl - circular yunos" :width 800 :height 600))
