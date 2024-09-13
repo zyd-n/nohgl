@@ -136,15 +136,9 @@
           ebo (gl:gen-buffer))
     (gl:bind-vertex-array vao)
     (gl:bind-buffer :array-buffer vbo)
-    ;; TODO: Fix this disgusting hack of shit immediately
-    (gl:buffer-data :array-buffer :static-draw
-                    (if (subtypep (type-of verts) 'shape)
-                        (vfill :float (attributes verts))
-                        verts))
+    (gl:buffer-data :array-buffer :static-draw (vfill :float (attributes verts)))
     (gl:bind-buffer :element-array-buffer ebo)
-    ;; TODO: Fix this disgusting hack of shit immediately
-    (cond ((indices verts) (gl:buffer-data :element-array-buffer :static-draw (vfill :unsigned-int (indices verts))))
-          (vao-indices (gl:buffer-data :element-array-buffer :static-draw vao-indices)))
+    (gl:buffer-data :element-array-buffer :static-draw (vfill :unsigned-int (indices verts)))
     (format-vertex-attribs)
     (generate-textures vao-store)
     ;; unbind

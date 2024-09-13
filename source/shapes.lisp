@@ -1,5 +1,14 @@
 (in-package #:nohgl)
 
+;; All of this is horribly wasteful. I don't really do anything with this
+;; struct aside from take it apart and pack the values into an
+;; array. Ultimately, vertices (attributes) are lists of numbers. Trying to
+;; make the interface more descriptive might be a losing battle if this is the
+;; result.
+;;
+;; Therefore,
+;; FIXME: God, please.
+
 (defstruct (vertex (:constructor vertex))
   pos
   uv)
@@ -7,8 +16,6 @@
 (defclass shape () ()
   (:documentation
    "Empty class used to check if something is a shape or do general operations on shapes"))
-
-;; (defun shape-p (obj))
 
 (defun mapv (function vecs)
   (dotimes (i (length vecs))
@@ -37,46 +44,39 @@
   (vertex :pos (vec3 +1.0 +1.0 +0.0) :uv (vec2 +1.0 +1.0))
   (vertex :pos (vec3 +1.0 -1.0 +0.0) :uv (vec2 +1.0 +0.0)))
 
-(define-shape cube (0 1 3 1 2 3)
-  ;; Face 1
+(define-shape half-size-upfacing-plane (0 1 2 2 3 0)
+  (vertex :pos (vec3 -0.5 +0.0 +0.5) :uv (vec2 0.0 1.0))
+  (vertex :pos (vec3 +0.5 +0.0 +0.5) :uv (vec2 1.0 1.0))
+  (vertex :pos (vec3 +0.5 +0.0 -0.5) :uv (vec2 1.0 0.0))
+  (vertex :pos (vec3 -0.5 +0.0 -0.5) :uv (vec2 0.0 0.0)))
+
+(define-shape cube (0 1 2 2 3 0 4 5 6 6 7 4 8 9 10 10 11 8 12 13 14 14 15 12 16 17 18 18 19 16 20 21 22 22 23 20)
+  (vertex :pos (vec3 -0.5 +0.5 -0.5) :uv (vec2 +0.0 +1.0))
   (vertex :pos (vec3 -0.5 -0.5 -0.5) :uv (vec2 +0.0 +0.0))
   (vertex :pos (vec3 +0.5 -0.5 -0.5) :uv (vec2 +1.0 +0.0))
   (vertex :pos (vec3 +0.5 +0.5 -0.5) :uv (vec2 +1.0 +1.0))
-  (vertex :pos (vec3 +0.5 +0.5 -0.5) :uv (vec2 +1.0 +1.0))
-  (vertex :pos (vec3 -0.5 +0.5 -0.5) :uv (vec2 +0.0 +1.0))
-  (vertex :pos (vec3 -0.5 -0.5 -0.5) :uv (vec2 +0.0 +0.0))
-  ;; Face 2
+
+  (vertex :pos (vec3 -0.5 +0.5 +0.5) :uv (vec2 +0.0 +1.0))
   (vertex :pos (vec3 -0.5 -0.5 +0.5) :uv (vec2 +0.0 +0.0))
   (vertex :pos (vec3 +0.5 -0.5 +0.5) :uv (vec2 +1.0 +0.0))
   (vertex :pos (vec3 +0.5 +0.5 +0.5) :uv (vec2 +1.0 +1.0))
-  (vertex :pos (vec3 +0.5 +0.5 +0.5) :uv (vec2 +1.0 +1.0))
-  (vertex :pos (vec3 -0.5 +0.5 +0.5) :uv (vec2 +0.0 +1.0))
-  (vertex :pos (vec3 -0.5 -0.5 +0.5) :uv (vec2 +0.0 +0.0))
-  ;; Face 3
-  (vertex :pos (vec3 -0.5 +0.5 +0.5) :uv (vec2 +1.0 +0.0))
-  (vertex :pos (vec3 -0.5 +0.5 -0.5) :uv (vec2 +1.0 +1.0))
-  (vertex :pos (vec3 -0.5 -0.5 -0.5) :uv (vec2 +0.0 +1.0))
-  (vertex :pos (vec3 -0.5 -0.5 -0.5) :uv (vec2 +0.0 +1.0))
-  (vertex :pos (vec3 -0.5 -0.5 +0.5) :uv (vec2 +0.0 +0.0))
-  (vertex :pos (vec3 -0.5 +0.5 +0.5) :uv (vec2 +1.0 +0.0))
-  ;; Face 4
-  (vertex :pos (vec3 +0.5 +0.5 +0.5) :uv (vec2 +1.0 +0.0))
-  (vertex :pos (vec3 +0.5 +0.5 -0.5) :uv (vec2 +1.0 +1.0))
-  (vertex :pos (vec3 +0.5 -0.5 -0.5) :uv (vec2 +0.0 +1.0))
+
+  (vertex :pos (vec3 -0.5 -0.5 +0.5) :uv (vec2 +0.0 +1.0))
+  (vertex :pos (vec3 -0.5 -0.5 -0.5) :uv (vec2 +0.0 +0.0))
+  (vertex :pos (vec3 -0.5 +0.5 -0.5) :uv (vec2 +1.0 +0.0))
+  (vertex :pos (vec3 -0.5 +0.5 +0.5) :uv (vec2 +1.0 +1.0))
+
   (vertex :pos (vec3 +0.5 -0.5 -0.5) :uv (vec2 +0.0 +1.0))
   (vertex :pos (vec3 +0.5 -0.5 +0.5) :uv (vec2 +0.0 +0.0))
   (vertex :pos (vec3 +0.5 +0.5 +0.5) :uv (vec2 +1.0 +0.0))
-  ;; Face 5
-  (vertex :pos (vec3 -0.5 -0.5 -0.5) :uv (vec2 +0.0 +1.0))
-  (vertex :pos (vec3 +0.5 -0.5 -0.5) :uv (vec2 +1.0 +1.0))
-  (vertex :pos (vec3 +0.5 -0.5 +0.5) :uv (vec2 +1.0 +0.0))
-  (vertex :pos (vec3 +0.5 -0.5 +0.5) :uv (vec2 +1.0 +0.0))
-  (vertex :pos (vec3 -0.5 -0.5 +0.5) :uv (vec2 +0.0 +0.0))
-  (vertex :pos (vec3 -0.5 -0.5 -0.5) :uv (vec2 +0.0 +1.0))
-  ;; Face 6
-  (vertex :pos (vec3 -0.5 +0.5 -0.5) :uv (vec2 +0.0 +1.0))
   (vertex :pos (vec3 +0.5 +0.5 -0.5) :uv (vec2 +1.0 +1.0))
-  (vertex :pos (vec3 +0.5 +0.5 +0.5) :uv (vec2 +1.0 +0.0))
-  (vertex :pos (vec3 +0.5 +0.5 +0.5) :uv (vec2 +1.0 +0.0))
-  (vertex :pos (vec3 -0.5 +0.5 +0.5) :uv (vec2 +0.0 +0.0))
-  (vertex :pos (vec3 -0.5 +0.5 -0.5) :uv (vec2 +0.0 +1.0)))
+
+  (vertex :pos (vec3 -0.5 -0.5 +0.5) :uv (vec2 +0.0 +1.0))
+  (vertex :pos (vec3 +0.5 -0.5 +0.5) :uv (vec2 +0.0 +0.0))
+  (vertex :pos (vec3 +0.5 -0.5 -0.5) :uv (vec2 +1.0 +0.0))
+  (vertex :pos (vec3 -0.5 -0.5 -0.5) :uv (vec2 +1.0 +1.0))
+
+  (vertex :pos (vec3 -0.5 +0.5 +0.5) :uv (vec2 +0.0 +1.0))
+  (vertex :pos (vec3 +0.5 +0.5 +0.5) :uv (vec2 +0.0 +0.0))
+  (vertex :pos (vec3 +0.5 +0.5 -0.5) :uv (vec2 +1.0 +0.0))
+  (vertex :pos (vec3 -0.5 +0.5 -0.5) :uv (vec2 +1.0 +1.0)))

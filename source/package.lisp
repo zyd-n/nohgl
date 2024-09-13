@@ -73,8 +73,13 @@
    #:camera-sens
    #:mouse-x
    #:mouse-y
-   #:*key-stack*
    ;; input
-   #:maybe-double-click))
+   #:*key-stack*
+   #:maybe-double-click
+   ;; shapes
+   #:define-shape
+   #:cube
+   #:half-size-upfacing-plane
+   #:z-facing-quad))
 
 
