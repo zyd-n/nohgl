@@ -116,17 +116,17 @@
 
    in vec2 otexture_coord;
 
-   uniform float x1;
-   uniform float y1;
-   uniform float z1;
+   uniform float r;
+   uniform float g;
+   uniform float b;
 
    void main()
    {
 
-     FragColor = vec4(x1, y1, z1, 0.0f);
+     FragColor = vec4(r, g, b, 0.0f);
    }"
   :verts (make-instance 'half-size-upfacing-plane)
-  :uniforms '("model" "view" "projection" "x1" "y1" "z1"))
+  :uniforms '("model" "view" "projection" "r" "g" "b"))
 
 ;;; Render Helpers
 
@@ -226,10 +226,10 @@
 (defun draw-grid (x z)
   (let ((model (m* (meye 4) (mtranslation (vec3 (float x) 0.0 (float z)))))
         ;; Pink disco? lmao
-        (x (random 9.0))
-        (y (random 1.0))
-        (z (random 3.0)))
-    (upload-uniforms 'floor (uf-pairs (("model" model) ("x1" x) ("y1" y) ("z1" z))))
+        (r (random 9.0))
+        (g (random 1.0))
+        (b (random 3.0)))
+    (upload-uniforms 'floor (uf-pairs (("model" model) ("r" r) ("g" g) ("b" b))))
     (gl:bind-vertex-array (vao (get-vao 'floor)))
     (%gl:draw-elements :triangles 6 :unsigned-int 0)))
 
