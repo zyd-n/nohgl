@@ -1,1 +1,1 @@
-sbcl --eval '(ql:quickload :nohgl)' --eval '(setf nohgl:*built-as-executable* t)' --eval '(asdf:make :nohgl-circular-yunos)'
+sbcl --eval '(push :deployed *features*)' --eval '(ql:quickload :nohgl)' --eval '(asdf:make :nohgl-circular-yunos)'
