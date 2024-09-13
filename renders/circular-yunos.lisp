@@ -14,7 +14,6 @@
     (gl:enable :depth-test)
     (setf (mouse-x camera) (/ (glfw:width (current-context)) 2))
     (setf (mouse-y camera) (/ (glfw:height (current-context)) 2))
-    ;; TODO: Implement a way to toggle the cursor. Perhaps a double click?
     (setf (glfw:input-mode :cursor (current-context)) :cursor-disabled)))
 
 ;;; Texture Formats
@@ -37,7 +36,7 @@
 
 ;;; Vertex Attribute Format
 
-(defmethod format-vertex-attribs ()
+(defmethod nohgl:format-vertex-attribs ()
   (let ((size-of-float (cffi:foreign-type-size :float)))
     (gl:vertex-attrib-pointer 0 3 :float :false (* 5 size-of-float) 0)
     (gl:enable-vertex-attrib-array 0)
@@ -92,6 +91,43 @@
   :uniforms
   '("texture0" "texture1" "model" "view" "projection"))
 
+(defvao 'floor
+  :vertex-shader
+  "#version 330 core
+
+   layout (location = 0) in vec3 position;
+   layout (location = 1) in vec2 itexture_coord;
+
+   out vec2 otexture_coord;
+
+   uniform mat4 model;
+   uniform mat4 view;
+   uniform mat4 projection;
+
+   void main()
+   {
+     gl_Position = projection * view * model * vec4(position, 1.0);
+     otexture_coord = vec2(itexture_coord.x, itexture_coord.y);
+   }"
+  :fragment-shader
+  "#version 330 core
+
+   out vec4 FragColor;
+
+   in vec2 otexture_coord;
+
+   uniform float x1;
+   uniform float y1;
+   uniform float z1;
+
+   void main()
+   {
+
+     FragColor = vec4(x1, y1, z1, 0.0f);
+   }"
+  :verts (make-instance 'half-size-upfacing-plane)
+  :uniforms '("model" "view" "projection" "x1" "y1" "z1"))
+
 ;;; Render Helpers
 
 ;; Super limited. We need a way to pass in texture units as proper objects
@@ -114,8 +150,11 @@
 (defun upload-uniforms (vao uniforms-with-data)
   (loop for (uniform data) in uniforms-with-data
         do (let ((uniform-location (gl:get-uniform-location (program (get-vao vao)) uniform)))
-             (cffi:with-pointer-to-vector-data (ptr (marr data))
-               (%gl:uniform-matrix-4fv uniform-location 1 :false ptr)))))
+             (typecase data
+               (float (gl:uniformf uniform-location data))
+               (t
+                (cffi:with-pointer-to-vector-data (ptr (marr data))
+                  (%gl:uniform-matrix-4fv uniform-location 1 :false ptr)))))))
 
 (defmacro uf-pairs (pairs)
   `(list ,@(loop for (name data) in pairs
@@ -134,16 +173,14 @@
                                           (or rotation-angle (glfw:time)))))
            (model (m* identity-matrix translation-matrix rotation-matrix)))
       (upload-uniforms 'v1 (uf-pairs (("model" model))))
-      (gl:draw-arrays :triangles 0 36))))
+      ;; (%gl:draw-arrays :triangles 0 3)
+      (%gl:draw-elements :triangles 36 :unsigned-int 0))))
 
 (defun vec3r (dt count &optional (radius 0.1) (just-update t))
   (let ((vecs '()))
     (dotimes (n count vecs)
-      (unless just-update
-        (incf dt 0.796))
-      (push (vec3 (* radius (cos dt))
-                  (* radius (sin dt))
-                  0.0)
+      (unless just-update (incf dt 0.796))
+      (push (vec3 (* radius (cos dt)) (* radius (sin dt)) 0.0)
             vecs))))
 
 (defparameter *yuno-positions*
@@ -186,16 +223,26 @@
                (:s (setf position (v- position (v* target (* (dt) speed)))))
                (:d (setf position (v+ position (v* (vunit (vc target up)) (* (dt) speed)))))))))
 
-;;; Render
+(defun draw-grid (x z)
+  (let ((model (m* (meye 4) (mtranslation (vec3 (float x) 0.0 (float z)))))
+        ;; Pink disco? lmao
+        (x (random 9.0))
+        (y (random 1.0))
+        (z (random 3.0)))
+    (upload-uniforms 'floor (uf-pairs (("model" model) ("x1" x) ("y1" y) ("z1" z))))
+    (gl:bind-vertex-array (vao (get-vao 'floor)))
+    (%gl:draw-elements :triangles 6 :unsigned-int 0)))
 
-;; Loads of API inconsistency. Sometimes we pass in just the symbol name of a
-;; vao (e.g: 'v1), others times vao object itself, and still others we use a
-;; getter: (get-vao 'v1)
+(defmacro make-grid (w h)
+  `(loop for i from 1 ,(if (plusp w) 'upto 'downto) ,w
+         do (loop for j from 1 ,(if (plusp h) 'upto 'downto) ,h
+                  do (draw-grid i j))))
+;;; Render
 
 (define-render circular-yunos
    ((stepn 0.0)
     (radius 0.1)
-    (radius-direction :positive) )
+    (radius-direction :positive))
   (with-slots (camera-position camera-target camera-up) (camera (current-context))
     (let ((view (mlookat camera-position (v+ camera-position camera-target) camera-up))
           (projection (mperspective 35.0 (/ (glfw:width *g*) (glfw:height *g*)) 0.1 100.0)))
@@ -204,11 +251,17 @@
       (gl:use-program (program (get-vao 'v1)))
       (upload-uniforms 'v1 (uf-pairs (("view" view) ("projection" projection))))
       (update-radius-direction radius)
+      (gl:bind-vertex-array (vao (get-vao 'v1)))
       (rotate-yunos *yuno-positions*)
       (rotate-yunos (list (vec3 +0.0 +0.0 +0.0)))
       (stepn+ 0.01)
       (update-yuno-distances (vec3r stepn 8 radius nil))
-      (gl:bind-vertex-array (vao (get-vao 'v1)))
+      (gl:use-program (program (get-vao 'floor)))
+      (upload-uniforms 'floor (uf-pairs (("view" view) ("projection" projection))))
+      (make-grid 10 10)
+      (make-grid -10 -10)
+      (make-grid 10 -10)
+      (make-grid -10 10)
       (if (radius-direction+ radius-direction)
           (radius+ 0.01)
           (radius- 0.01))
@@ -218,5 +271,6 @@
 ;;; Start
 
 (defun start-render ()
-  (when *built-as-executable* (use-relative-dir))
+  #+deployed
+  (use-relative-dir)
   (start 'circular-yunos :title "nohgl - circular yunos" :width 800 :height 600))
