@@ -37,3 +37,10 @@
   :entry-point "nohgl.circular-yunos:start-render"
   :components ((:module "renders"
                 :components ((:file "circular-yunos")))))
+
+(asdf:defsystem nohgl-basic-lighting
+  :serial T
+  :depends-on (#:nohgl)
+  :components
+  ((:module "renders"
+    :components ((:file "basic-lighting")))))
