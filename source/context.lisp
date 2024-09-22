@@ -30,7 +30,8 @@
    (clock :initform nil :accessor clock)
    ;; This will hold all mouse-events, a list of mouse-event
    ;; objects. Currently will just hold `double-click'.
-   (mouse-events :initform `(,(make-instance 'double-click)) :accessor mouse-events)))
+   (mouse-events :initform `(,(make-instance 'double-click)) :accessor mouse-events)
+   (user-left-window :initform nil :accessor user-left-window)))
 
 (defmethod initialize-instance :after ((context g) &key)
   (setf (clock context) (time-by (nsec 1))))

@@ -3,7 +3,11 @@
 (in-package #:nohgl)
 
 (defmethod glfw:window-resized ((window g) width height)
-  (gl:viewport 0 0 width height))
+  (gl:viewport 0 0 width height)
+  (setf (reuse-last-camera (camera window)) t))
+
+(defmethod glfw:window-focused ((window g) focused)
+  (unless focused (setf (reuse-last-camera (camera window)) t)))
 
 ;; We might want different types of mouse-events in the future.
 (defclass mouse-event () ())
@@ -29,8 +33,13 @@
 
 (defun disable/enable-cursor ()
   (case (get-cursor-state)
-    (:cursor-normal (setf (glfw:input-mode :cursor (current-context)) :cursor-disabled))
-    (:cursor-disabled (setf (glfw:input-mode :cursor (current-context)) :cursor-normal))))
+    (:cursor-normal
+     (setf (glfw:input-mode :cursor (current-context)) :cursor-disabled
+           (user-left-window (current-context)) nil
+           (reuse-last-camera (camera (current-context))) t))
+    (:cursor-disabled
+     (setf (glfw:input-mode :cursor (current-context)) :cursor-normal
+           (user-left-window (current-context)) t))))
 
 (defun maybe-double-click ()
   (let ((double-click (get-mouse-event 'double-click)))
@@ -51,7 +60,12 @@
 
 (defmethod glfw:mouse-button-changed ((window g) button action modifiers)
   (when (and (eq button :left) (eq action :press))
-    (notify-event 'double-click)))
+    (notify-event 'double-click))
+  (update-input-stack button))
+
+(defmethod glfw:mouse-scrolled ((window g) xoffset yoffset)
+  (with-accessors ((fov fov)) (camera window)
+    (setf fov (limit (- fov yoffset) '(1.0 1.0) '(45.0 45.0)))))
 
 (defun process-input ()
   (glfw:poll-events))
