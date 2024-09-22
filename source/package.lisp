@@ -73,13 +73,18 @@
    #:camera-sens
    #:mouse-x
    #:mouse-y
+   #:fov
    ;; input
    #:*key-stack*
    #:maybe-double-click
+   #:print-camera
+   #:move-up
+   #:move-down
+   #:input-stack
    ;; shapes
    #:define-shape
    #:cube
    #:half-size-upfacing-plane
-   #:z-facing-quad))
+   #:z-facing-quad ))
 
 
