@@ -31,10 +31,7 @@
 (defun degree (radian)
   (* radian (/ 180 pi)))
 
-(defmacro limit (n &key limiters min max)
-  (let ((min-fn (gensym))
-        (max-fn (gensym)))
-    `(multiple-value-bind (,min-fn ,max-fn) ,limiters
-       (cond ((< ,n ,min) (funcall ,min-fn))
-             ((> ,n ,max) (funcall ,max-fn))
-             (t ,n)))))
+(defun limit (n min-map max-map)
+  (cond ((< n (first min-map)) (second min-map))
+        ((> n (first max-map)) (second max-map))
+        (t n)))
