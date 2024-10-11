@@ -50,68 +50,96 @@
 
 ;;; VAOs
 
-;; Below demonstrates a need to share shaders across VAOs.
-
-(defvao 'v1
+(defvao 'cube
   :vertex-shader
   "#version 330 core
 
-   layout (location = 0) in vec3 iPos;
+   layout (location = 0) in vec3 iPosition;
    layout (location = 1) in vec3 iNormal;
-   layout (location = 2) in vec2 iTexture;
+   layout (location = 2) in vec2 iUV;
 
    uniform mat4 model;
    uniform mat4 view;
    uniform mat4 projection;
-   // uniform vec3 lightPos;
 
    out vec3 FragPos;
    out vec3 Normal;
-   // out vec3 LightPos;
 
    void main()
    {
-     FragPos = vec3(model * vec4(iPos, 1.0));
-     Normal = iNormal;
-     gl_Position = projection * view * model * vec4(iPos, 1.0);
+     FragPos = vec3(model * vec4(iPosition, 1.0));
+     Normal = mat3(transpose(inverse(model))) * iNormal;
+     // UV = vec2(iUV.x, iUV.y);
 
-
-     // LightPos = vec3(view * vec4(lightPos, 1.0));
-   }"
+     gl_Position = projection * view * vec4(iPosition, 1.0);
+   }
+"
   :fragment-shader
   "#version 330 core
 
+   struct Material {
+     vec3 ambient;
+     vec3 diffuse;
+     vec3 specular;
+     float shine;
+   };
+
+   struct Light {
+     vec3 position;
+     vec3 ambient;
+     vec3 diffuse;
+     vec3 specular;
+   };
+
    in vec3 FragPos;
    in vec3 Normal;
-   // in vec3 LightPos;
-
-   uniform vec3 objectColor;
-   uniform vec3 lightColor;
-   uniform vec3 lightPos;
 
    out vec4 FragColor;
+
+   uniform Material material;
+   uniform Light light;
+   // uniform vec3 viewPos;
 
    void main()
    {
 
      // Ambient
-     float ambientStrength = 0.1;
-     vec3 ambient = ambientStrength * lightColor;
+     // float ambientStrength = 0.1;
+     vec3 ambient = light.ambient * material.ambient;
 
      // Diffuse
      vec3 norm = normalize(Normal);
-     vec3 lightDir = normalize(lightPos - FragPos);
+     vec3 lightDir = normalize(light.position - FragPos);
      float diff = max(dot(norm, lightDir), 0.0);
-     //float diff = dot(norm, lightDir);
-     vec3 diffuse = diff * lightColor;
+     vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
-     vec3 result = (ambient + diffuse) * objectColor;
+     // Specular
+     // float specularStrength = 0.5;
+     vec3 viewDir = normalize(FragPos);
+     // vec3 viewDir = normalize(viewPos - FragPos);
+     vec3 reflectDir = reflect(-lightDir, norm);
+     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shine);
+     vec3 specular = light.specular * (spec * material.specular);
+
+     vec3 result = ambient + diffuse + specular;
      FragColor = vec4(result, 1.0);
-   }"
-  :verts (make-instance 'cube)
-  :uniforms '("model" "view" "projection" "objectColor" "lightColor" "lightPos"))
+   }
+"
+  :verts (make-instance 'cube-mesh)
+  :uniforms '("model"
+              "view"
+              "projection"
+              ;; "viewPos"
+              "material.ambient"
+              "material.diffuse"
+              "material.specular"
+              "material.shine"
+              "light.position"
+              "light.ambient"
+              "light.diffuse"
+              "light.specular"))
 
-(defvao 'floor
+(defvao 'checker-board
   :vertex-shader
   "#version 330 core
 
@@ -147,29 +175,29 @@
    uniform float g;
    uniform float b;
 
-   uniform vec3 objectColor;
-   uniform vec3 lightColor;
-   uniform vec3 lightPos;
+   uniform vec3 object_color;
+   uniform vec3 light_color;
+   uniform vec3 light_pos;
 
    void main()
    {
      // Ambient
      float ambientStrength = 0.1;
-     vec3 ambient = ambientStrength * lightColor;
+     vec3 ambient = ambientStrength * light_color;
 
      // Diffuse
      vec3 norm = normalize(Normal);
-     vec3 lightDir = normalize(lightPos - FragPos);
+     vec3 lightDir = normalize(light_pos - FragPos);
      float diff = max(dot(norm, lightDir), 0.0);
      //float diff = dot(norm, lightDir);
-     vec3 diffuse = diff * lightColor;
+     vec3 diffuse = diff * light_color;
 
-     vec3 result = (ambient + diffuse) * objectColor;
+     vec3 result = (ambient + diffuse) * object_color;
      // FragColor = vec4(result, 1.0);
      FragColor = vec4(vec3(r, g, b) * result, 0.0f);
    }"
-  :verts (make-instance 'half-size-upfacing-plane)
-  :uniforms '("model" "view" "projection" "r" "g" "b" "objectColor" "lightColor" "lightPos"))
+  :verts (make-instance 'floor-mesh)
+  :uniforms '("model" "view" "projection" "r" "g" "b" "object_color" "light_color" "light_pos"))
 
 (defvao 'light
   :vertex-shader
@@ -194,35 +222,10 @@
    {
      FragColor = vec4(1.0); // set all 4 vector values to 1.0
    }"
-  :verts (make-instance 'cube)
+  :verts (make-instance 'cube-mesh)
   :uniforms '("model" "view" "projection"))
 
 ;;; Render Helpers
-
-(defun bind-textures (vao &rest textures)
-  (let ((*package* (find-package :nohgl.basic-lighting))
-        (texture-count (length textures)))
-    (if (> texture-count 16)
-        (error "Maximum number of textures is 16, got ~s instead with object:~%~s"
-               texture-count textures)
-        (dotimes (n texture-count)
-          (gl:active-texture (intern (format nil "~s~d" 'texture n)
-                                     (find-package :keyword)))
-          (gl:bind-texture :texture-2d (id (get-texture (elt textures n) vao)))))))
-
-(defun upload-uniforms (vao uniforms-with-data)
-  (loop for (uniform data) in uniforms-with-data
-        do (let ((uniform-location (gl:get-uniform-location (program (get-vao vao)) uniform)))
-             (typecase data
-               (float (gl:uniformf uniform-location data))
-               (vec3 (cffi:with-pointer-to-vector-data (ptr (varr data))
-                       (%gl:uniform-3fv uniform-location 1 ptr)))
-               (mat4 (cffi:with-pointer-to-vector-data (ptr (marr data))
-                       (%gl:uniform-matrix-4fv uniform-location 1 :false ptr)))))))
-
-(defmacro uf-pairs (pairs)
-  `(list ,@(loop for (name data) in pairs
-                 collect `(list ,name ,data))))
 
 (defun update-camera ()
   (with-accessors ((position camera-position) (target camera-target) (speed camera-speed) (up camera-up))
@@ -239,58 +242,63 @@
                (:left-shift (nohgl:move-down))
                (:space (nohgl:move-up))))))
 
-(defun make-checker-board (size colors)
-  (labels ((draw (x z c)
-             (let ((model (m* (meye 4) (mtranslation (vec3 (float x) -0.5009 (float z))))))
-               (destructuring-bind (r g b) c
-                 (upload-uniforms 'floor (uf-pairs (("model" model) ("r" r) ("g" g) ("b" b))))
-                 (gl:bind-vertex-array (vao (get-vao 'floor)))
-                 (%gl:draw-elements :triangles 6 :unsigned-int 0)))))
-    (let ((current-color (first colors))
-          (last-color (second colors)))
-      (loop for x from (- size) to size
-            do (loop for z from (- size) to size
-                     do (draw x z current-color)
-                        (rotatef current-color last-color))))))
-
 ;;; Render
 
+(define-gpu-struct light ()
+  ((light.position (vec 1.2 1.0 2.0))
+   (light.diffuse  (v* +white+ (vec 0.5 0.5 0.5)))
+   (light.ambient  (v* light.diffuse 0.2))
+   (light.specular (vec 1 1 1))))
+
+(define-gpu-struct material ()
+  ((material.ambient)
+   (material.diffuse)
+   (material.specular)
+   (material.shine)))
+
+(define-shaded-object cube ((:struct light) (:struct material))
+  ((material.ambient :initform (vec 1.0 0.5 0.31))
+   (material.diffuse :initform (vec 1.0 0.5 0.31))
+   (material.specular :initform (vec 0.5 0.5 0.5))
+   (material.shine :initform 32.0)))
+
+(define-shaded-object light () ())
+
+(define-shaded-object checker-board ()
+  ((light-color :initform (vec 1.0 1.0 1.0))
+   (light-pos :initform (vec 1.2 1.0 2.0))
+   (object-color :initform (vec 1.0 0.5 0.31))
+   (r :initform 0 :accessor r)
+   (g :initform 0 :accessor g)
+   (b :initform 0 :accessor b)))
+
+(alexandria:define-constant +board-colors+ '((0.32 0.25 0.33) (0.41 0.39 0.37))
+  :test 'equal)
+
+(defun render-checker-board (instance size &optional (colors +board-colors+))
+  (let ((current-color (first colors))
+        (last-color (second colors)))
+    (loop for x from (- size) to size
+          do (loop for z from (- size) to size
+                   do (setf (model instance) (model-matrix :translate (vec (float x) -0.5009 (float z))))
+                      (destructuring-bind (r g b) current-color
+                        (setf (r instance) r)
+                        (setf (g instance) g)
+                        (setf (b instance) b))
+                      (render instance :count 6)
+                      (rotatef current-color last-color)))))
+
 (define-render basic-lighting
-   ((light-pos (vec3 1.2 1.0 2.0))
-    (light-color (vec3 1.0 1.0 1.0))
-    (object-color (vec3 1.0 0.5 0.31)))
-  (with-slots (camera-position camera-target camera-up fov) (camera (current-context))
-    (let ((view (mlookat camera-position (v+ camera-position camera-target) camera-up))
-          (projection (mperspective fov (/ (glfw:width *g*) (glfw:height *g*)) 0.1 100.0)))
-      (labels ((make-cube ()
-                 (let ((model (m* (meye 4) (mtranslation (vec 0 0.0 0.0)))))
-                   (gl:use-program (program (get-vao 'v1)))
-                   (upload-uniforms 'v1 (uf-pairs (("model" model) ("view" view) ("projection" projection)
-                                                   ("lightColor" light-color)
-                                                   ("lightPos" light-pos)
-                                                   ("objectColor" object-color))))
-                   (gl:bind-vertex-array (vao (get-vao 'v1)))
-                   (%gl:draw-elements :triangles 36 :unsigned-int 0)))
-               (make-light ()
-                 (let ((model (m* (meye 4) (mtranslation light-pos) (mscaling (vec3 0.2 0.2 0.2)))))
-                   (gl:use-program (program (get-vao 'light)))
-                   (upload-uniforms 'light (uf-pairs (("model" model) ("view" view) ("projection" projection))))
-                   (gl:bind-vertex-array (vao (get-vao 'light)))
-                   (%gl:draw-elements :triangles 36 :unsigned-int 0)))
-               (make-floor ()
-                 (gl:use-program (program (get-vao 'floor)))
-                 (upload-uniforms 'floor (uf-pairs (("view" view)
-                                                    ("projection" projection)
-                                                    ("lightColor" light-color)
-                                                    ("lightPos" light-pos)
-                                                    ("objectColor" object-color))))
-                 (make-checker-board 10 '((0.32 0.25 0.33) (0.41 0.39 0.37)))))
-        (gl:clear :color-buffer :depth-buffer)
-        (make-cube)
-        (make-light)
-        (make-floor)
-        (update-camera)
-        (maybe-double-click)))))
+   ((cube (make-shaded-object 'cube :vao 'cube))
+    (light (make-shaded-object 'light :vao 'light :model (model-matrix :translate (vec 1.2 1.0 2.0) :scale (vec 0.2 0.2 0.2))))
+    (board (make-shaded-object 'checker-board :vao 'checker-board)))
+  (gl:clear :color-buffer :depth-buffer)
+  (render cube :count 36)
+  (render light :count 36)
+  (render-checker-board board 10)
+  (update-camera)
+  (maybe-double-click))
+
 
 ;;; Start
 

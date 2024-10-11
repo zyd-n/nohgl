@@ -10,6 +10,7 @@
    #:start
    #:init-options
    #:define-render
+   #:render
    #:quit
    #:compile-shaders
    #:initialize-vao
@@ -26,11 +27,7 @@
    #:get-vao
    #:format-vertex-attribs
    #:default-format
-   ;; shapes
-   #:shape
-   #:attributes
-   #:z-facing-quad
-   #:cube
+   #:vaos
    ;; textures
    #:texture
    #:width
@@ -83,8 +80,25 @@
    #:input-stack
    ;; shapes
    #:define-shape
-   #:cube
-   #:half-size-upfacing-plane
-   #:z-facing-quad ))
+   #:cube-mesh
+   #:floor-mesh
+   #:wall-mesh
+   ;; gpu types
+   #:define-gpu-struct
+   #:make-gpu-struct
+   #:gpu-structs
+   ;; gpu objects
+   #:define-shaded-object
+   #:make-shaded-object
+   #:shaded-objects
+   #:model
+   ;; colors
+   #:+black+
+   #:+white+
+   #:+red+
+   #:+green+
+   #:+blue+
+   ;; transforms
+   #:model-matrix))
 
 

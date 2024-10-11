@@ -100,3 +100,12 @@
         (setf yaw yaw+)
         (setf pitch pitch+)
         (when reuse-last-camera (setf (reuse-last-camera (camera (current-context))) nil))))))
+
+(defun aspect-ratio ()
+  (/ (glfw:width (current-context)) (glfw:height (current-context))))
+
+(defun view-projection ()
+  (with-slots (camera-position camera-target camera-up fov) (camera (current-context))
+    (let ((view (mlookat camera-position (v+ camera-position camera-target) camera-up))
+          (projection (mperspective fov (aspect-ratio) 0.1 100.0)))
+      (values view projection))))

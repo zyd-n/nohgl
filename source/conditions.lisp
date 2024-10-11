@@ -31,3 +31,23 @@
   (:report (lambda (condition stream)
              (declare (ignore condition))
              (format stream "Must supply a fragment shader (source-file) when creating a VAO instance. Did you forget to pass in :fragment-shader?"))))
+
+(define-condition context-already-exists (warning) ()
+  (:report (lambda (condition stream)
+             (declare (ignore condition))
+             (format stream "Context already exists: ~s" (current-context)))))
+
+(define-condition gpu-struct-not-found (error)
+  ((struct-name :initarg :struct-name :initform nil :reader struct-name))
+  (:report (lambda (condition stream)
+             (format stream "GPU struct could not be found: ~s" (struct-name condition)))))
+
+(define-condition gpu-type-does-not-exist (error)
+  ((gpu-type :initarg :gpu-type :initform nil :reader gpu-type))
+  (:report (lambda (condition stream)
+             (format stream "GPU type does not exist: ~s" (gpu-type condition)))))
+
+(define-condition shaded-object-not-found (error)
+  ((object-name :initarg :object-name :initform nil :reader object-name))
+  (:report (lambda (condition stream)
+             (format stream "Shaded object could not be found: ~s" (object-name condition)))))

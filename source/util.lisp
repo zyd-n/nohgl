@@ -35,3 +35,9 @@
   (cond ((< n (first min-map)) (second min-map))
         ((> n (first max-map)) (second max-map))
         (t n)))
+
+(defun slots-of (instance &optional kind-of-slots)
+  (mapcar #'closer-mop:slot-definition-name
+          (case kind-of-slots
+            (:direct (closer-mop:class-direct-slots (class-of instance)))
+            (:all (closer-mop:class-slots (class-of instance))))))

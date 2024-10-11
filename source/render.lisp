@@ -49,3 +49,11 @@
             ,(+draw name bindings body)
             (make-instances-obsolete ',name)
             (find-class ',name))))
+
+(defun render (shaded-object &key count)
+  (let* ((vao-name (vao shaded-object))
+         (program (program (get-vao vao-name))))
+    (gl:use-program program)
+    (upload-uniforms vao-name (append (view-projection->uniform) (uniform-name-value-pairs shaded-object)))
+    (gl:bind-vertex-array (vao (get-vao vao-name)))
+    (%gl:draw-elements :triangles count :unsigned-int 0)))
