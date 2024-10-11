@@ -15,19 +15,19 @@
 (defmacro attribs (&key pos normal uv)
   `'(,@pos ,@normal ,@uv))
 
-(define-shape z-facing-quad (2 1 0 3 2 0)
+(define-shape wall-mesh (2 1 0 3 2 0)
   (attribs :pos (-1.0 -1.0 +0.0) :uv (+0.0 +0.0))
   (attribs :pos (-1.0 +1.0 +0.0) :uv (+0.0 +1.0))
   (attribs :pos (+1.0 +1.0 +0.0) :uv (+1.0 +1.0))
   (attribs :pos (+1.0 -1.0 +0.0) :uv (+1.0 +0.0)))
 
-(define-shape half-size-upfacing-plane (0 1 2 2 3 0)
+(define-shape floor-mesh (0 1 2 2 3 0)
   (attribs :pos (-0.5 +0.0 +0.5) :normal (0.0 1.0 0.0) :uv (0.0 1.0))
   (attribs :pos (+0.5 +0.0 +0.5) :normal (0.0 1.0 0.0) :uv (1.0 1.0))
   (attribs :pos (+0.5 +0.0 -0.5) :normal (0.0 1.0 0.0) :uv (1.0 0.0))
   (attribs :pos (-0.5 +0.0 -0.5) :normal (0.0 1.0 0.0) :uv (0.0 0.0)))
 
-(define-shape cube (0 1 2 2 3 0 4 5 6 6 7 4 8 9 10 10 11 8 12 13 14 14 15 12 16 17 18 18 19 16 20 21 22 22 23 20)
+(define-shape cube-mesh (0 1 2 2 3 0 4 5 6 6 7 4 8 9 10 10 11 8 12 13 14 14 15 12 16 17 18 18 19 16 20 21 22 22 23 20)
   (attribs :pos (-0.5 +0.5 -0.5) :normal (0.0 0.0 -1.0) :uv (+0.0 +1.0))
   (attribs :pos (-0.5 -0.5 -0.5) :normal (0.0 0.0 -1.0) :uv (+0.0 +0.0))
   (attribs :pos (+0.5 -0.5 -0.5) :normal (0.0 0.0 -1.0) :uv (+1.0 +0.0))
