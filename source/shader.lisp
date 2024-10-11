@@ -2,6 +2,12 @@
 
 (defvar *vaos* (make-hash-table :test 'equal))
 
+(defun vaos ()
+  *vaos*)
+
+(defun (setf vaos) (value)
+  (setf *vaos* value))
+
 (defparameter *shader-dir* (format nil "~Ashaders/" *main-dir*))
 
 (defun shader-location (s)
@@ -35,7 +41,7 @@
             :do (format output "~a~%" line)))))
 
 (defmethod register-vao ((vao store) name)
-  (setf (gethash name *vaos*) vao))
+  (setf (gethash name (vaos)) vao))
 
 (defmethod update-vao ((vao store))
   (with-slots (name) vao
@@ -51,7 +57,7 @@
               (when vao+ (update-vao vao+)))))
 
 (defun get-vao (vao-name)
-  (gethash vao-name *vaos*))
+  (gethash vao-name (vaos)))
 
 (defun free-vao (vao-store)
   (with-slots (vao vbo ebo program) vao-store
@@ -97,7 +103,7 @@
 ;; three pair values: (source texture-name texture-format)
 
 (declaim (ftype (function (symbol &key
-                                  (:verts (or nohgl:shape vector array gl:gl-array sb-sys:system-area-pointer))
+                                  (:verts (or shape vector array gl:gl-array sb-sys:system-area-pointer))
                                   (:vertex-shader string)
                                   (:fragment-shader string)
                                   (:uniforms list-of-strings)

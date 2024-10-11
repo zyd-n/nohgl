@@ -83,7 +83,6 @@
               (vec3 0.0 0.04 0.0)))))
 
 ;; TODO: Fix hardcoded values
-;; TODO: Account for when our mouse moves outside of the window and then comes back.
 (defmethod glfw:mouse-moved ((window g) xpos ypos)
   (unless (user-left-window window)
     (with-accessors ((yaw camera-yaw) (pitch camera-pitch) (sens camera-sens) (target camera-target) (x mouse-x) (y mouse-y) (reuse-last-camera reuse-last-camera))
