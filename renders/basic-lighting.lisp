@@ -242,6 +242,22 @@
                (:left-shift (nohgl:move-down))
                (:space (nohgl:move-up))))))
 
+(alexandria:define-constant +board-colors+ '((0.32 0.25 0.33) (0.41 0.39 0.37))
+  :test 'equal)
+
+(defun render-checker-board (instance size &optional (colors +board-colors+))
+  (let ((current-color (first colors))
+        (last-color (second colors)))
+    (loop for x from (- size) to size
+          do (loop for z from (- size) to size
+                   do (setf (model instance) (model-matrix :translate (vec (float x) -0.5009 (float z))))
+                      (destructuring-bind (r g b) current-color
+                        (setf (r instance) r)
+                        (setf (g instance) g)
+                        (setf (b instance) b))
+                      (render instance :count 6)
+                      (rotatef current-color last-color)))))
+
 ;;; Render
 
 (define-gpu-struct light ()
@@ -271,22 +287,6 @@
    (r :initform 0 :accessor r)
    (g :initform 0 :accessor g)
    (b :initform 0 :accessor b)))
-
-(alexandria:define-constant +board-colors+ '((0.32 0.25 0.33) (0.41 0.39 0.37))
-  :test 'equal)
-
-(defun render-checker-board (instance size &optional (colors +board-colors+))
-  (let ((current-color (first colors))
-        (last-color (second colors)))
-    (loop for x from (- size) to size
-          do (loop for z from (- size) to size
-                   do (setf (model instance) (model-matrix :translate (vec (float x) -0.5009 (float z))))
-                      (destructuring-bind (r g b) current-color
-                        (setf (r instance) r)
-                        (setf (g instance) g)
-                        (setf (b instance) b))
-                      (render instance :count 6)
-                      (rotatef current-color last-color)))))
 
 (define-render basic-lighting
    ((cube (make-shaded-object 'cube :vao 'cube))
