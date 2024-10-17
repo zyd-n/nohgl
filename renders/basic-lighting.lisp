@@ -225,6 +225,36 @@
   :verts (make-instance 'cube-mesh)
   :uniforms '("model" "view" "projection"))
 
+;;; GPU Data
+
+(define-gpu-struct light ()
+  ((light.position (vec 1.2 1.0 2.0))
+   (light.diffuse  (v* +white+ (vec 0.5 0.5 0.5)))
+   (light.ambient  (v* light.diffuse 0.2))
+   (light.specular (vec 1 1 1))))
+
+(define-gpu-struct material ()
+  ((material.ambient)
+   (material.diffuse)
+   (material.specular)
+   (material.shine)))
+
+(define-shaded-object cube ((:struct light) (:struct material))
+  ((material.ambient :initform (vec 1.0 0.5 0.31))
+   (material.diffuse :initform (vec 1.0 0.5 0.31))
+   (material.specular :initform (vec 0.5 0.5 0.5))
+   (material.shine :initform 32.0)))
+
+(define-shaded-object light () ())
+
+(define-shaded-object checker-board ()
+  ((light-color :initform (vec 1.0 1.0 1.0))
+   (light-pos :initform (vec 1.2 1.0 2.0))
+   (object-color :initform (vec 1.0 0.5 0.31))
+   (r :initform 0 :accessor r)
+   (g :initform 0 :accessor g)
+   (b :initform 0 :accessor b)))
+
 ;;; Render Helpers
 
 (defun update-camera ()
@@ -258,47 +288,38 @@
                       (render instance :count 6)
                       (rotatef current-color last-color)))))
 
+;;; Render State
+
+(add-state 'render-loop 'cube
+  (make-shaded-object 'cube :vao 'cube))
+
+(add-state 'render-loop 'board
+  (make-shaded-object 'checker-board :vao 'checker-board))
+
+(add-state 'render-loop 'light
+  (make-shaded-object 'light
+    :vao 'light
+    :model (model-matrix :translate (vec 1.2 1.0 2.0)
+                         :scale (vec .2 .2 .2))))
+
+;;; Render Functions
+
+(add-hook 'render-loop
+  (lambda (render-state)
+    (render (state-of 'cube render-state) :count 36)
+    (render (state-of 'light render-state) :count 36)))
+
+(add-hook 'render-loop
+  (lambda (render-state)
+    (render-checker-board (state-of 'board render-state) 10)))
+
 ;;; Render
 
-(define-gpu-struct light ()
-  ((light.position (vec 1.2 1.0 2.0))
-   (light.diffuse  (v* +white+ (vec 0.5 0.5 0.5)))
-   (light.ambient  (v* light.diffuse 0.2))
-   (light.specular (vec 1 1 1))))
-
-(define-gpu-struct material ()
-  ((material.ambient)
-   (material.diffuse)
-   (material.specular)
-   (material.shine)))
-
-(define-shaded-object cube ((:struct light) (:struct material))
-  ((material.ambient :initform (vec 1.0 0.5 0.31))
-   (material.diffuse :initform (vec 1.0 0.5 0.31))
-   (material.specular :initform (vec 0.5 0.5 0.5))
-   (material.shine :initform 32.0)))
-
-(define-shaded-object light () ())
-
-(define-shaded-object checker-board ()
-  ((light-color :initform (vec 1.0 1.0 1.0))
-   (light-pos :initform (vec 1.2 1.0 2.0))
-   (object-color :initform (vec 1.0 0.5 0.31))
-   (r :initform 0 :accessor r)
-   (g :initform 0 :accessor g)
-   (b :initform 0 :accessor b)))
-
-(define-render basic-lighting
-   ((cube (make-shaded-object 'cube :vao 'cube))
-    (light (make-shaded-object 'light :vao 'light :model (model-matrix :translate (vec 1.2 1.0 2.0) :scale (vec 0.2 0.2 0.2))))
-    (board (make-shaded-object 'checker-board :vao 'checker-board)))
+(define-render basic-lighting ()
   (gl:clear :color-buffer :depth-buffer)
-  (render cube :count 36)
-  (render light :count 36)
-  (render-checker-board board 10)
+  (run-hooks 'render-loop)
   (update-camera)
   (maybe-double-click))
-
 
 ;;; Start
 

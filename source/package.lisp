@@ -99,6 +99,16 @@
    #:+green+
    #:+blue+
    ;; transforms
-   #:model-matrix))
+   #:model-matrix
+   ;; hooks
+   #:run-hooks
+   #:add-hook
+   #:add-state
+   #:remove-hook
+   #:find-hook
+   #:state-of
+   #:remove-state
+   #:render-loop
+   #:get-state))
 
 

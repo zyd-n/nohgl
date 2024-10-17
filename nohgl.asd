@@ -5,38 +5,37 @@
   :license "Public Domain"
   :description "A personal library and testbed for OpenGL theatrics."
   :serial T
-  :depends-on
-  (:alexandria
-   :uiop
-   :glfw
-   :cl-opengl
-   :local-time
-   :3d-math
-   :livesupport
-   :pngload
-   :static-vectors
-   :closer-mop)
+  :depends-on (:alexandria
+               :uiop
+               :glfw
+               :cl-opengl
+               :local-time
+               :3d-math
+               :livesupport
+               :pngload
+               :static-vectors
+               :closer-mop)
   :components
   ((:module "source"
-    :components
-    ((:file "package")
-     (:file "util")
-     (:file "conditions")
-     (:file "context")
-     (:file "camera")
-     (:file "input")
-     (:file "time")
-     (:file "uniforms")
-     (:file "render")
-     (:file "shapes")
-     (:file "shader")
-     (:file "texture")
-     (:file "color")
-     (:file "transforms")
-     (:file "defclass-star")
-     (:file "gpu-types")
-     (:file "gpu-object")
-     (:file "init")))))
+    :components ((:file "package")
+                 (:file "util")
+                 (:file "conditions")
+                 (:file "context")
+                 (:file "hooks")
+                 (:file "camera")
+                 (:file "input")
+                 (:file "time")
+                 (:file "uniforms")
+                 (:file "render")
+                 (:file "shapes")
+                 (:file "shader")
+                 (:file "texture")
+                 (:file "color")
+                 (:file "transforms")
+                 (:file "defclass-star")
+                 (:file "gpu-types")
+                 (:file "gpu-object")
+                 (:file "init")))))
 
 (asdf:defsystem nohgl-circular-yunos
   :serial T
