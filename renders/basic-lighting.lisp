@@ -275,7 +275,7 @@
 (alexandria:define-constant +board-colors+ '((0.32 0.25 0.33) (0.41 0.39 0.37))
   :test 'equal)
 
-(defun render-checker-board (instance size &optional (colors +board-colors+))
+(defun make-checker-board (instance size &optional (colors +board-colors+))
   (let ((current-color (first colors))
         (last-color (second colors)))
     (loop for x from (- size) to size
@@ -299,19 +299,19 @@
 (add-state 'render-loop 'light
   (make-shaded-object 'light
     :vao 'light
-    :model (model-matrix :translate (vec 1.2 1.0 2.0)
-                         :scale (vec .2 .2 .2))))
+    :model (model-matrix :translate (vec 1.2 1.0 2.0) :scale (vec .2 .2 .2))))
 
 ;;; Render Functions
 
-(add-hook 'render-loop
-  (lambda (render-state)
-    (render (state-of 'cube render-state) :count 36)
-    (render (state-of 'light render-state) :count 36)))
+(defun render-main-objects (render-state)
+  (render (get-state 'cube render-state) :count 36)
+  (render (get-state 'light render-state) :count 36))
 
-(add-hook 'render-loop
-  (lambda (render-state)
-    (render-checker-board (state-of 'board render-state) 10)))
+(defun render-board (render-state)
+  (make-checker-board (get-state 'board render-state) 10))
+
+(add-hook 'render-loop 'render-main-objects)
+(add-hook 'render-loop 'render-board)
 
 ;;; Render
 
