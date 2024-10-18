@@ -101,14 +101,15 @@
    ;; transforms
    #:model-matrix
    ;; hooks
-   #:run-hooks
    #:add-hook
-   #:add-state
    #:remove-hook
-   #:find-hook
-   #:state-of
+   #:hooks-of
+   #:run-hooks
+   ;; state
+   #:add-state
+   #:get-state
    #:remove-state
-   #:render-loop
-   #:get-state))
+   #:state-of
+   #:render-loop))
 
 
