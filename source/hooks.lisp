@@ -25,36 +25,37 @@
   (setf (gethash hook (current-hooks)) function))
 
 (defun add-hook (hook function)
-  (push function (hooks (find-hook hook))))
-
-(defun remove-hook (hook index)
   (with-accessors ((hooks hooks)) (find-hook hook)
-    (setf hooks (remove (elt hooks index) hooks))))
+    (setf hooks (append (remove function hooks) (list function)))))
 
-(defun get-hooks (hook)
+(defun remove-hook (hook function)
+  (with-accessors ((hooks hooks)) (find-hook hook)
+    (setf hooks (remove function hooks))))
+
+(defun hooks-of (hook)
   (hooks (find-hook hook)))
 
 (defun run-hooks (hook)
   (mapc
    (lambda (function)
-     (funcall function (get-state hook)))
-   (get-hooks hook)))
+     (funcall function (state-of hook)))
+   (hooks (find-hook hook))))
 
 ;;; State
 
-(defun get-state (state-name)
-  (state (find-hook state-name)))
+(defun state-of (hook)
+  (state (find-hook hook)))
 
-(defun state-of (object-name state)
+(defun get-state (object-name state)
   (gethash object-name state))
 
-(defun add-state (state-name object-name object)
-  (let ((ht (get-state state-name)))
+(defun add-state (hook object-name object)
+  (let ((ht (state-of hook)))
     (setf (gethash object-name ht) object)))
 
-(defun remove-state (state-name object-name)
-  (let ((ht (get-state state-name)))
-    (setf (gethash object-name ht) nil)))
+(defun remove-state (hook object-name)
+  (let ((ht (state-of hook)))
+    (setf (gethash object-name ht) NIL)))
 
 ;;; Make hooks
 
