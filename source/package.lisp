@@ -59,18 +59,19 @@
    #:dt
    ;; camera
    #:camera
-   #:camera-position
-   #:camera-target
-   #:camera-up
-   #:camera-right
-   #:camera-view
-   #:camera-yaw
-   #:camera-pitch
-   #:camera-speed
-   #:camera-sens
-   #:mouse-x
-   #:mouse-y
+   #:location
+   #:target
+   #:up
+   #:right
+   #:view
+   #:yaw
+   #:pitch
+   #:rate
+   #:sens
    #:fov
+   ;; mouse-location
+   #:x
+   #:y
    ;; input
    #:*key-stack*
    #:maybe-double-click

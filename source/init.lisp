@@ -14,6 +14,7 @@
   (livesupport:setup-lisp-repl)
   (glfw:init)
   (glfw:make-current (setf (current-context) (apply #'make-instance render-name options)))
+  (setf (mouse-location (current-context)) (make-instance 'mouse-location))
   (prepare (current-context))
   (init-options)
   (initialize-vaos (vaos)))

@@ -4,10 +4,10 @@
 
 (defmethod glfw:window-resized ((window g) width height)
   (gl:viewport 0 0 width height)
-  (setf (reuse-last-camera (camera window)) t))
+  (setf (%reuse (camera window)) t))
 
 (defmethod glfw:window-focused ((window g) focused)
-  (unless focused (setf (reuse-last-camera (camera window)) t)))
+  (unless focused (setf (%reuse (camera window)) t)))
 
 ;; We might want different types of mouse-events in the future.
 (defclass mouse-event () ())
@@ -35,11 +35,11 @@
   (case (get-cursor-state)
     (:cursor-normal
      (setf (glfw:input-mode :cursor (current-context)) :cursor-disabled
-           (user-left-window (current-context)) nil
-           (reuse-last-camera (camera (current-context))) t))
+           (out-of-focus (current-context)) nil
+           (%reuse (camera (current-context))) t))
     (:cursor-disabled
      (setf (glfw:input-mode :cursor (current-context)) :cursor-normal
-           (user-left-window (current-context)) t))))
+           (out-of-focus (current-context)) t))))
 
 (defun maybe-double-click ()
   (let ((double-click (get-mouse-event 'double-click)))
@@ -65,7 +65,16 @@
 
 (defmethod glfw:mouse-scrolled ((window g) xoffset yoffset)
   (with-accessors ((fov fov)) (camera window)
-    (setf fov (limit (- fov yoffset) '(1.0 1.0) '(45.0 45.0)))))
+    (setf fov (limit 1 45
+                (- fov yoffset)))))
 
 (defun process-input ()
   (glfw:poll-events))
+
+(defclass mouse-location ()
+  ((x :accessor x)
+   (y :accessor y)))
+
+(defmethod initialize-instance :after ((mouse-location mouse-location) &key)
+  (setf (x mouse-location) (/ (glfw:width (current-context)) 2))
+  (setf (y mouse-location) (/ (glfw:height (current-context)) 2)))

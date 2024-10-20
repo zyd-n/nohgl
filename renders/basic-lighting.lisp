@@ -12,8 +12,6 @@
     (gl:viewport 0 0 (glfw:width (current-context)) (glfw:height (current-context)))
     (gl:clear-color .09 .09 .09 0)
     (gl:enable :depth-test)
-    (setf (mouse-x camera) (/ (glfw:width (current-context)) 2))
-    (setf (mouse-y camera) (/ (glfw:height (current-context)) 2))
     (setf (glfw:input-mode :cursor (current-context)) :cursor-disabled)))
 
 ;;; Texture Formats
@@ -258,14 +256,14 @@
 ;;; Render Helpers
 
 (defun update-camera ()
-  (with-accessors ((position camera-position) (target camera-target) (speed camera-speed) (up camera-up))
+  (with-accessors ((location location) (target target) (rate rate) (up up))
       (camera (current-context))
     (loop for key in (nohgl:input-stack)
           do (case key
-               (:w (setf position (v+ position (v* target (* (dt) speed)))))
-               (:a (setf position (v- position (v* (vunit (vc target up)) (* (dt) speed)))))
-               (:s (setf position (v- position (v* target (* (dt) speed)))))
-               (:d (setf position (v+ position (v* (vunit (vc target up)) (* (dt) speed)))))
+               (:w (setf location (v+ location (v* target (* (dt) rate)))))
+               (:a (setf location (v- location (v* (vunit (vc target up)) (* (dt) rate)))))
+               (:s (setf location (v- location (v* target (* (dt) rate)))))
+               (:d (setf location (v+ location (v* (vunit (vc target up)) (* (dt) rate)))))
                (:p (nohgl:print-camera))
                (:right (nohgl:print-camera))
                (:button-5 (nohgl:move-down))

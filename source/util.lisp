@@ -31,9 +31,9 @@
 (defun degree (radian)
   (* radian (/ 180 pi)))
 
-(defun limit (n min-map max-map)
-  (cond ((< n (first min-map)) (second min-map))
-        ((> n (first max-map)) (second max-map))
+(defun limit (min max n)
+  (cond ((< n min) min)
+        ((> n max) max)
         (t n)))
 
 (defun slots-of (instance &optional kind-of-slots)
@@ -41,3 +41,6 @@
           (case kind-of-slots
             (:direct (closer-mop:class-direct-slots (class-of instance)))
             (:all (closer-mop:class-slots (class-of instance))))))
+
+(defun printn (n thing)
+  (format nil "~v@{~A~:*~}" n thing))

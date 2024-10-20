@@ -23,6 +23,7 @@
                  (:file "context")
                  (:file "hooks")
                  (:file "camera")
+                 (:file "input-stack")
                  (:file "input")
                  (:file "time")
                  (:file "uniforms")
