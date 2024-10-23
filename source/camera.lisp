@@ -21,7 +21,7 @@
    :pitch 0
    :rate 10
    :sens .09
-   :fov 45))
+   :fov 90))
 
 (defmethod initialize-instance :after ((camera camera) &key)
   (setf (location camera) (vec 0 0 3))
