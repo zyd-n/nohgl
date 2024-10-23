@@ -7,12 +7,14 @@
 
 ;;; Initialization Options
 
-(defmethod init-options ()
-  (let ((camera (camera (current-context))))
-    (gl:viewport 0 0 (glfw:width (current-context)) (glfw:height (current-context)))
-    (gl:clear-color .09 .09 .09 0)
-    (gl:enable :depth-test)
-    (setf (glfw:input-mode :cursor (current-context)) :cursor-disabled)))
+(defun setup (state)
+  (declare (ignorable state))
+  (gl:viewport 0 0 (glfw:width (current-context)) (glfw:height (current-context)))
+  (gl:clear-color .09 .09 .09 0)
+  (gl:enable :depth-test)
+  (setf (glfw:input-mode :cursor (current-context)) :cursor-disabled))
+
+(add-hook 'init 'setup)
 
 ;;; Texture Formats
 
@@ -314,8 +316,6 @@
 ;;; Render
 
 (define-render basic-lighting ()
-  (gl:clear :color-buffer :depth-buffer)
-  (run-hooks 'render-loop)
   (update-camera)
   (maybe-double-click))
 

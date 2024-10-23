@@ -35,6 +35,7 @@
 (defun hooks-of (hook)
   (hooks (find-hook hook)))
 
+;; Should hooks always have to receive state? Currently they do.
 (defun run-hooks (hook)
   (mapc
    (lambda (function)
@@ -60,7 +61,7 @@
 ;;; Make hooks
 
 (defclass render-loop (hook) ())
+(defclass init (hook) ())
 
 (make-hook 'render-loop (make-instance 'render-loop))
-
-
+(make-hook 'init (make-instance 'hook))

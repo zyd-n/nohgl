@@ -106,11 +106,12 @@
    #:remove-hook
    #:hooks-of
    #:run-hooks
+   #:render-loop
+   #:init
    ;; state
    #:add-state
    #:get-state
    #:remove-state
-   #:state-of
-   #:render-loop))
+   #:state-of))
 
 
