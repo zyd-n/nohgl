@@ -52,176 +52,39 @@
 
 (defvao 'cube
   :vertex-shader
-  "#version 330 core
-
-   layout (location = 0) in vec3 iPosition;
-   layout (location = 1) in vec3 iNormal;
-   layout (location = 2) in vec2 iUV;
-
-   uniform mat4 model;
-   uniform mat4 view;
-   uniform mat4 projection;
-
-   out vec3 FragPos;
-   out vec3 Normal;
-
-   void main()
-   {
-     FragPos = vec3(model * vec4(iPosition, 1.0));
-     Normal = mat3(transpose(inverse(model))) * iNormal;
-     // UV = vec2(iUV.x, iUV.y);
-
-     gl_Position = projection * view * vec4(iPosition, 1.0);
-   }
-"
+  (shader-s "cube.vert")
   :fragment-shader
-  "#version 330 core
-
-   struct Material {
-     vec3 ambient;
-     vec3 diffuse;
-     vec3 specular;
-     float shine;
-   };
-
-   struct Light {
-     vec3 position;
-     vec3 ambient;
-     vec3 diffuse;
-     vec3 specular;
-   };
-
-   in vec3 FragPos;
-   in vec3 Normal;
-
-   out vec4 FragColor;
-
-   uniform Material material;
-   uniform Light light;
-   // uniform vec3 viewPos;
-
-   void main()
-   {
-
-     // Ambient
-     // float ambientStrength = 0.1;
-     vec3 ambient = light.ambient * material.ambient;
-
-     // Diffuse
-     vec3 norm = normalize(Normal);
-     vec3 lightDir = normalize(light.position - FragPos);
-     float diff = max(dot(norm, lightDir), 0.0);
-     vec3 diffuse = light.diffuse * (diff * material.diffuse);
-
-     // Specular
-     // float specularStrength = 0.5;
-     vec3 viewDir = normalize(FragPos);
-     // vec3 viewDir = normalize(viewPos - FragPos);
-     vec3 reflectDir = reflect(-lightDir, norm);
-     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shine);
-     vec3 specular = light.specular * (spec * material.specular);
-
-     vec3 result = ambient + diffuse + specular;
-     FragColor = vec4(result, 1.0);
-   }
-"
-  :verts (make-instance 'cube-mesh)
-  :uniforms '("model"
-              "view"
-              "projection"
-              ;; "viewPos"
-              "material.ambient"
-              "material.diffuse"
-              "material.specular"
-              "material.shine"
-              "light.position"
-              "light.ambient"
-              "light.diffuse"
-              "light.specular"))
+  (shader-s "cube.frag")
+  :verts
+  (make-instance 'cube-mesh)
+  :uniforms
+  '("model"
+    "view"
+    "projection"
+    "material.ambient"
+    "material.diffuse"
+    "material.specular"
+    "material.shine"
+    "light.position"
+    "light.ambient"
+    "light.diffuse"
+    "light.specular"))
 
 (defvao 'checker-board
   :vertex-shader
-  "#version 330 core
-
-   layout (location = 0) in vec3 position;
-   layout (location = 1) in vec3 normal;
-   layout (location = 2) in vec2 uv;
-
-   uniform mat4 model;
-   uniform mat4 view;
-   uniform mat4 projection;
-
-   out vec2 UV;
-   out vec3 FragPos;
-   out vec3 Normal;
-
-   void main()
-   {
-     FragPos = vec3(model * vec4(position, 1.0));
-     Normal = normal;
-     UV = vec2(uv.x, uv.y);
-     gl_Position = projection * view * model * vec4(position, 1.0);
-   }"
+  (shader-s "checker-board.vert")
   :fragment-shader
-  "#version 330 core
-
-   out vec4 FragColor;
-
-   in vec2 UV;
-   in vec3 FragPos;
-   in vec3 Normal;
-
-   uniform float r;
-   uniform float g;
-   uniform float b;
-
-   uniform vec3 object_color;
-   uniform vec3 light_color;
-   uniform vec3 light_pos;
-
-   void main()
-   {
-     // Ambient
-     float ambientStrength = 0.1;
-     vec3 ambient = ambientStrength * light_color;
-
-     // Diffuse
-     vec3 norm = normalize(Normal);
-     vec3 lightDir = normalize(light_pos - FragPos);
-     float diff = max(dot(norm, lightDir), 0.0);
-     //float diff = dot(norm, lightDir);
-     vec3 diffuse = diff * light_color;
-
-     vec3 result = (ambient + diffuse) * object_color;
-     // FragColor = vec4(result, 1.0);
-     FragColor = vec4(vec3(r, g, b) * result, 0.0f);
-   }"
-  :verts (make-instance 'floor-mesh)
-  :uniforms '("model" "view" "projection" "r" "g" "b" "object_color" "light_color" "light_pos"))
+  (shader-s "checker-board.frag")
+  :verts
+  (make-instance 'floor-mesh)
+  :uniforms
+  '("model" "view" "projection" "r" "g" "b" "object_color" "light_color" "light_pos"))
 
 (defvao 'light
   :vertex-shader
-  "#version 330 core
-
-   layout (location = 0) in vec3 position;
-
-   uniform mat4 model;
-   uniform mat4 view;
-   uniform mat4 projection;
-
-   void main()
-   {
-     gl_Position = projection * view * model * vec4(position, 1.0);
-   }"
+  (shader-s "light.vert")
   :fragment-shader
-  "#version 330 core
-
-   out vec4 FragColor;
-
-   void main()
-   {
-     FragColor = vec4(1.0); // set all 4 vector values to 1.0
-   }"
+  (shader-s "light.frag")
   :verts (make-instance 'cube-mesh)
   :uniforms '("model" "view" "projection"))
 
@@ -275,6 +138,9 @@
 (alexandria:define-constant +board-colors+ '((0.32 0.25 0.33) (0.41 0.39 0.37))
   :test 'equal)
 
+;; Its gross that we compute this every single loop. Particularly the model
+;; matrix. We should be able to do all of this just once. We can also use a
+;; vector for the rgb uniform.
 (defun make-checker-board (instance size &optional (colors +board-colors+))
   (let ((current-color (first colors))
         (last-color (second colors)))
