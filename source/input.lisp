@@ -63,11 +63,6 @@
     (notify-event 'double-click))
   (update-input-stack button))
 
-(defmethod glfw:mouse-scrolled ((window g) xoffset yoffset)
-  (with-accessors ((fov fov)) (camera window)
-    (setf fov (limit 1 45
-                (- fov yoffset)))))
-
 (defun process-input ()
   (glfw:poll-events))
 
